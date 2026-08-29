@@ -3,18 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokémon TCG Pocket Card Database</title>
-    <!-- 引入 Tailwind CSS 样式框架 -->
+    <title>Pokémon TCG Pocket - 卡牌交换广场</title>
+    <!-- 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen">
+<body class="bg-slate-900 text-slate-100 min-h-screen pb-20">
     
-    <!-- 顶部导航栏 -->
+    <!-- 顶部导航与操作栏 -->
     <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50 shadow-md">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <h1 class="text-2xl font-bold bg-gradient-to-r from-amber-400 to-rose-500 bg-clip-text text-transparent">
-                TCG Pocket 数据库
-            </h1>
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-amber-400 to-rose-500 bg-clip-text text-transparent">
+                    TCG Pocket 交换广场
+                </h1>
+                <p class="text-xs text-slate-400 mt-0.5">勾选你的“持有(Have)”与“求购(Want)”，轻松匹配交换对象</p>
+            </div>
             
             <!-- 筛选控制器 -->
             <div class="flex flex-wrap gap-3 items-center">
@@ -26,7 +29,7 @@
                     <option value="3diamond">◇◇◇ (3 菱形)</option>
                     <option value="4diamond">◇◇◇◇ (4 菱形)</option>
                     <option value="1star">☆ (1 星)</option>
-                    <option value="2star">☆☆ (2 星)</option>
+                    <option value="2star">★ / ☆☆ (彩色星/2星)</option>
                     <option value="crown">👑 (皇冠)</option>
                 </select>
 
@@ -39,12 +42,31 @@
                     <option value="pa">Promo-A (PA)</option>
                 </select>
 
-                <button id="searchBtn" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold px-4 py-2 rounded-lg text-sm transition-colors">
-                    查询
+                <button id="searchBtn" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold px-4 py-2 rounded-lg text-sm transition-colors shadow">
+                    查询卡牌
                 </button>
             </div>
         </div>
     </header>
+
+    <!-- 我的交换清单悬浮状态栏 -->
+    <div class="bg-slate-800/90 backdrop-blur border-b border-slate-700 py-3 px-4 sticky top-[73px] z-40 shadow-inner">
+        <div class="max-w-7xl mx-auto flex justify-between items-center text-sm">
+            <div class="flex gap-6">
+                <span class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+                    我有重复可出: <strong id="haveCount" class="text-emerald-400 font-mono">0</strong> 张
+                </span>
+                <span class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span>
+                    正在急求: <strong id="wantCount" class="text-rose-400 font-mono">0</strong> 张
+                </span>
+            </div>
+            <button onclick="exportTradeList()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors">
+                📋 生成我的交换清单文案
+            </button>
+        </div>
+    </div>
 
     <!-- 主体卡牌展示区 -->
     <main class="max-w-7xl mx-auto px-4 py-8">
@@ -52,12 +74,32 @@
         <div id="errorMsg" class="hidden text-center py-10 text-rose-400 bg-rose-950/30 rounded-xl border border-rose-800/50 mb-6"></div>
         
         <div id="contentContainer" class="space-y-10">
-            <!-- 动态渲染的系列与卡牌网格会注入到这里 -->
+            <!-- 动态渲染的内容 -->
         </div>
     </main>
 
-    <!-- 前端交互逻辑 -->
+    <!-- 弹窗：导出交换清单 -->
+    <div id="modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <h3 class="text-lg font-bold text-slate-100 flex justify-between items-center">
+                <span>我的 TCG Pocket 交换清单</span>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white text-sm">✕</button>
+            </h3>
+            <p class="text-xs text-slate-400">你可以直接复制以下文本，发到微信群、QQ群或论坛进行卡牌交换：</p>
+            <textarea id="tradeTextResult" class="w-full h-40 bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-slate-300 font-mono focus:outline-none" readonly></textarea>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeModal()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-sm">关闭</button>
+                <button onclick="copyTradeText()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold rounded-lg text-sm">一键复制文本</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 业务逻辑脚本 -->
     <script>
+        // 本地存储状态初始化 (记录用户的 Have 和 Want 状态)
+        let userTradeData = JSON.parse(localStorage.getItem('tcg_trade_data') || '{"have": {}, "want": {}}');
+        let globalCardsCache = [];
+
         async function fetchCards() {
             const rarity = document.getElementById('rarityFilter').value;
             const setId = document.getElementById('setFilter').value;
@@ -79,40 +121,59 @@
                 const res = await fetch(url);
                 const json = await res.json();
 
-                if (!json.success) {
-                    throw new Error(json.error || '获取数据失败');
-                }
+                if (!json.success) throw new Error(json.error || '获取数据失败');
 
                 const sets = json.data;
                 loading.style.display = 'none';
+                globalCardsCache = sets;
+
+                updateCounters();
 
                 if (sets.length === 0) {
                     container.innerHTML = `<div class="text-center py-20 text-slate-500">没有找到符合条件的卡牌</div>`;
                     return;
                 }
 
-                // 渲染每个扩展包下的卡牌
+                // 渲染每个扩展包
                 sets.forEach(set => {
                     const section = document.createElement('div');
-                    section.className = 'bg-slate-800/50 rounded-2xl p-6 border border-slate-700/60 shadow-lg';
+                    section.className = 'bg-slate-800/40 rounded-2xl p-6 border border-slate-700/60 shadow-lg';
                     
-                    let cardsHtml = set.cards.map(card => `
-                        <div class="bg-slate-800 rounded-xl overflow-hidden border border-slate-700 hover:border-amber-400/50 transition-all group flex flex-col">
-                            <div class="aspect-[3/4] bg-slate-900 relative overflow-hidden flex items-center justify-center p-2">
-                                <img src="${card.image}" alt="${card.name}" loading="lazy" class="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300">
-                            </div>
-                            <div class="p-3 flex flex-col flex-grow justify-between">
-                                <div>
-                                    <div class="text-xs text-amber-400 font-mono mb-1">${card.id}</div>
-                                    <h3 class="font-bold text-sm text-slate-100 truncate">${card.name}</h3>
+                    let cardsHtml = set.cards.map(card => {
+                        const isHave = !!userTradeData.have[card.id];
+                        const isWant = !!userTradeData.want[card.id];
+
+                        return `
+                            <div class="bg-slate-800 rounded-xl overflow-hidden border ${isHave ? 'border-emerald-500/80 shadow-emerald-900/20' : isWant ? 'border-rose-500/80 shadow-rose-900/20' : 'border-slate-700'} hover:border-amber-400/50 transition-all group flex flex-col">
+                                <div class="aspect-[3/4] bg-slate-900 relative overflow-hidden flex items-center justify-center p-2">
+                                    <img src="${card.image}" alt="${card.name}" loading="lazy" class="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300">
+                                    
+                                    <!-- 状态角标 -->
+                                    <div class="absolute top-2 left-2 flex flex-col gap-1">
+                                        ${isHave ? '<span class="bg-emerald-500 text-slate-950 text-[10px] font-bold px-1.5 py-0.5 rounded shadow">我有</span>' : ''}
+                                        ${isWant ? '<span class="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow">求</span>' : ''}
+                                    </div>
                                 </div>
-                                <div class="mt-2 pt-2 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-400">
-                                    <span>稀有度</span>
-                                    <span class="font-mono text-slate-200">${card.rarity}</span>
+                                <div class="p-3 flex flex-col flex-grow justify-between">
+                                    <div>
+                                        <div class="text-xs text-amber-400 font-mono mb-1">${card.id}</div>
+                                        <h3 class="font-bold text-sm text-slate-100 truncate">${card.name}</h3>
+                                    </div>
+                                    
+                                    <!-- 交换操作按钮 -->
+                                    <div class="mt-3 pt-2 border-t border-slate-700/50 flex justify-between gap-2">
+                                        <button onclick="toggleStatus('${card.id}', 'have')" class="flex-1 py-1 px-2 rounded text-xs font-semibold transition-colors ${isHave ? 'bg-emerald-600 text-white' : 'bg-slate-700 hover:bg-slate-600 text-slate-300'}">
+                                            我有
+                                        </button>
+                                        <button onclick="toggleStatus('${card.id}', 'want')" class="flex-1 py-1 px-2 rounded text-xs font-semibold transition-colors ${isWant ? 'bg-rose-600 text-white' : 'bg-slate-700 hover:bg-slate-600 text-slate-300'}">
+                                            求
+                                        </button>
+                                    </div>
+                                    <div class="mt-1 text-center text-[10px] text-slate-500 font-mono">${card.rarity}</div>
                                 </div>
                             </div>
-                        </div>
-                    `).join('');
+                        `;
+                    }).join('');
 
                     section.innerHTML = `
                         <div class="flex justify-between items-center mb-6 pb-3 border-b border-slate-700">
@@ -133,10 +194,84 @@
             }
         }
 
-        // 绑定事件
+        // 切换“我有”或“求”状态
+        function toggleStatus(cardId, type) {
+            if (type === 'have') {
+                if (userTradeData.have[cardId]) {
+                    delete userTradeData.have[cardId];
+                } else {
+                    userTradeData.have[cardId] = true;
+                    delete userTradeData.want[cardId]; // 互斥
+                }
+            } else if (type === 'want') {
+                if (userTradeData.want[cardId]) {
+                    delete userTradeData.want[cardId];
+                } else {
+                    userTradeData.want[cardId] = true;
+                    delete userTradeData.have[cardId]; // 互斥
+                }
+            }
+
+            localStorage.setItem('tcg_trade_data', JSON.stringify(userTradeData));
+            updateCounters();
+            
+            // 局部重新渲染以更新高亮边框和角标，避免整体白屏刷新
+            // 简单起见直接重新触发查询或局部刷新
+            const activeSetId = document.getElementById('setFilter').value;
+            const activeRarity = document.getElementById('rarityFilter').value;
+            // 重新渲染当前DOM中的卡片状态
+            document.querySelectorAll(`[onclick*="${cardId}"]`).forEach(() => {
+                // 触发整体刷新确保UI同步
+                fetchCards();
+            }, { once: true });
+        }
+
+        // 更新顶部计数器
+        function updateCounters() {
+            const haveCount = Object.keys(userTradeData.have).length;
+            const wantCount = Object.keys(userTradeData.want).length;
+            document.getElementById('haveCount').textContent = haveCount;
+            document.getElementById('wantCount').textContent = wantCount;
+        }
+
+        // 导出交换清单文案
+        function exportTradeList() {
+            let text = `【Pokémon TCG Pocket 交换清单】\n`;
+            text += `----------------------------------\n`;
+            text += `🟢 我有的重复卡（可出）：\n`;
+            const haveIds = Object.keys(userTradeData.have);
+            if (haveIds.length === 0) {
+                text += `暂无\n`;
+            } else {
+                text += haveIds.join(', ') + `\n`;
+            }
+
+            text += `\n🔴 我在求的卡（愿收）：\n`;
+            const wantIds = Object.keys(userTradeData.want);
+            if (wantIds.length === 0) {
+                text += `暂无\n`;
+            } else {
+                text += wantIds.join(', ') + `\n`;
+            }
+            text += `----------------------------------\n`;
+            text += `快来和我交换卡牌吧！`;
+
+            document.getElementById('tradeTextResult').value = text;
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+
+        function copyTradeText() {
+            const textarea = document.getElementById('tradeTextResult');
+            textarea.select();
+            document.execCommand('copy');
+            alert('已成功复制交换清单到剪贴板！');
+        }
+
         document.getElementById('searchBtn').addEventListener('click', fetchCards);
-        
-        // 页面刚加载时自动请求一次
         window.addEventListener('DOMContentLoaded', fetchCards);
     </script>
 </body>
