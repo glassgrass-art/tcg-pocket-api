@@ -19,18 +19,44 @@ module.exports = async function handler(req, res) {
 
     const allCards = await response.json();
 
-    // 稀有度归一化映射
+    // 智能且宽容的稀有度归一化函数（完美支持菱形与彩色星星分级）
     function parseNormRarity(rawRarity = '') {
-      const r = rawRarity.trim();
-      if (r === '◇') return '1diamond';
-      if (r === '◇◇') return '2diamond';
-      if (r === '◇◇◇') return '3diamond';
-      if (r === '◇◇◇◇') return '4diamond';
-      if (r === '☆') return '1star';
-      if (r === '☆☆' || r === '★') return '2star';
-      if (r === '☆☆☆') return '3star';
-      if (r === '👑' || r === '♛') return 'crown';
-      if (r.toUpperCase().includes('SHINY') || r.toUpperCase().startsWith('S')) return 'shinystar1';
+      const r = rawRarity.toString().trim();
+      const s = r.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+      // 1. 匹配菱形 (1~4 钻石)
+      if (r.includes('◇') || r.includes('◆') || s === '1' || s.includes('onediamond') || s.includes('1diamond') || s === 'common') {
+        if (r.includes('◇◇◇◇') || r.includes('◆◆◆◆') || s.includes('4diamond')) return '4diamond';
+        if (r.includes('◇◇◇') || r.includes('◆◆◆') || s.includes('3diamond')) return '3diamond';
+        if (r.includes('◇◇') || r.includes('◆◆') || s.includes('2diamond')) return '2diamond';
+        return '1diamond'; // 默认单菱形
+      }
+
+      // 2. 匹配彩色星星 (★) 与 双星 (☆☆) ➔ 归类为 2星 (2star)
+      if (r.includes('★') || r.includes('☆☆') || s.includes('2star') || s.includes('sar') || s.includes('sr') || s.includes('twostars')) {
+        return '2star';
+      }
+
+      // 3. 匹配普通单星 (☆) ➔ 归类为 1星 (1star)
+      if (r.includes('☆') || s.includes('1star') || s.includes('onestar') || s === 'ar') {
+        return '1star';
+      }
+
+      // 4. 匹配三星
+      if (r.includes('☆☆☆') || s.includes('3star') || s.includes('threestars') || s.includes('ur')) {
+        return '3star';
+      }
+
+      // 5. 匹配皇冠
+      if (r.includes('👑') || r.includes('♛') || s.includes('crown')) {
+        return 'crown';
+      }
+
+      // 6. 闪卡 / 其他
+      if (s.includes('shiny') || r.startsWith('S')) {
+        return 'shinystar1';
+      }
+
       return 'other';
     }
 
