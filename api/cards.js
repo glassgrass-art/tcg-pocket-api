@@ -15,55 +15,51 @@ module.exports = async function handler(req, res) {
     if (!response.ok) throw new Error(`Upstream Data Fetch Failed: ${response.status}`);
     const allCards = await response.json();
 
-    // 细分所有稀有度档位
-    function parseNormRarity(rawRarity = '') {
+    // 映射为标准的稀有度简写 (C, U, R, RR, SR, AR, SAR, IM, UR)
+    function parseStandardRarity(rawRarity = '', cardMeta = {}) {
       const r = rawRarity.toString().trim();
       const s = r.toLowerCase().replace(/[^a-z0-9]/g, '');
 
-      // 1. 菱形系列 (1 ~ 4 钻)
-      if (r.includes('◊') || r.includes('◇') || r.includes('◆') || s === '1' || s.includes('diamond') || s === 'common') {
-        const diamondCount = (r.match(/[◊◇◆]/g) || []).length;
-        if (diamondCount >= 4 || s.includes('4diamond')) return '4diamond';
-        if (diamondCount === 3 || s.includes('3diamond')) return '3diamond';
-        if (diamondCount === 2 || s.includes('2diamond')) return '2diamond';
-        return '1diamond';
+      // 1. 冠位/Immersive (Crown / Immersive)
+      if (r.includes('👑') || r.includes('♛') || s.includes('crown') || s.includes('ur')) {
+        return 'UR';
+      }
+      if (s.includes('immersive') || s.includes('im')) {
+        return 'IM';
       }
 
-      // 2. 皇冠卡
-      if (r.includes('👑') || r.includes('♛') || s.includes('crown')) {
-        return 'crown';
+      // 2. 特殊插画 (SAR) / 超级稀有 (SR)
+      if (s.includes('sar') || s.includes('specialart') || r.includes('★★') && s.includes('ex')) {
+        return 'SAR';
+      }
+      if (s.includes('sr') || s.includes('2star') || r.includes('☆☆')) {
+        return 'SR';
       }
 
-      // 3. 彩色星星 (SAR 等 / 彩色双星或特殊闪星)
-      if (s.includes('sar') || s.includes('2starcolor') || r.includes('★★') || (r.includes('★') && (s.includes('ex') || s.includes('special')))) {
-        return 'shinystar2';
+      // 3. 艺术稀有 (AR) / 一星 (AR)
+      if (s.includes('ar') || s.includes('artrare') || (r.includes('★') && !r.includes('☆☆'))) {
+        return 'AR';
       }
 
-      // 4. 彩色单星 (AR 等)
-      if (s === 'ar' || s.includes('1starcolor') || (r.includes('★') && !r.includes('☆☆') && !r.includes('☆☆☆'))) {
-        // 如果是纯彩色单星
-        return 'shinystar1';
+      // 4. 双红卡 / 双星等对应高阶稀有度 (RR)
+      if (s.includes('rr') || s.includes('doublerare') || (r.includes('◇◇◇◇') || s.includes('4diamond') && s.includes('ex'))) {
+        return 'RR';
       }
 
-      // 5. 普通三星 (☆☆☆)
-      if (r.includes('☆☆☆') || s.includes('3star') || s.includes('ur')) {
-        return '3star';
+      // 5. 常规等级：C, U, R
+      const diamondCount = (r.match(/[◊◇◆]/g) || []).length;
+      if (diamondCount === 3 || s.includes('3diamond') || s === 'r' || s.includes('rare')) {
+        return 'R';
       }
-
-      // 6. 普通二星 (☆☆)
-      if (r.includes('☆☆') || s.includes('2star') || s.includes('sr')) {
-        return '2star';
+      if (diamondCount === 2 || s.includes('2diamond') || s === 'u' || s.includes('uncommon')) {
+        return 'U';
       }
-
-      // 7. 普通一星 (☆ 或 单星)
-      if (r.includes('☆') || s.includes('1star')) {
-        return '1star';
-      }
-
-      return 'other';
+      
+      // 默认兜底为 Common (C) 或 1 钻
+      return 'C';
     }
 
-    const targetNormRarity = rarity ? rarity.toLowerCase() : '';
+    const targetNormRarity = rarity ? rarity.toUpperCase() : '';
     const targetSetId = setId ? setId.toLowerCase() : '';
     const setsMap = {};
 
@@ -75,7 +71,7 @@ module.exports = async function handler(req, res) {
       if (targetSetId && currentSetId !== targetSetId) return;
 
       const rawRarity = card.rarity || '◇';
-      const normRarity = parseNormRarity(rawRarity);
+      const normRarity = parseStandardRarity(rawRarity, card);
 
       if (targetNormRarity && normRarity !== targetNormRarity) return;
 
@@ -95,7 +91,7 @@ module.exports = async function handler(req, res) {
         setId: currentSetId.toUpperCase(),
         setName: currentSetName,
         rarity: rawRarity,
-        normRarity: normRarity,
+        normRarity: normRarity, // 此时输出为标准的 'C', 'U', 'R', 'RR', 'SR', 'AR', 'SAR', 'IM', 'UR'
         image: imgUrl
       });
     });
