@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon TCG Pocket Card Database</title>
+    <!-- 引入 Tailwind CSS 样式框架 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+    
+    <!-- 顶部导航栏 -->
+    <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-amber-400 to-rose-500 bg-clip-text text-transparent">
+                TCG Pocket 数据库
+            </h1>
+            
+            <!-- 筛选控制器 -->
+            <div class="flex flex-wrap gap-3 items-center">
+                <!-- 稀有度筛选 -->
+                <select id="rarityFilter" class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-400">
+                    <option value="">全部稀有度</option>
+                    <option value="1diamond">◇ (1 菱形)</option>
+                    <option value="2diamond">◇◇ (2 菱形)</option>
+                    <option value="3diamond">◇◇◇ (3 菱形)</option>
+                    <option value="4diamond">◇◇◇◇ (4 菱形)</option>
+                    <option value="1star">☆ (1 星)</option>
+                    <option value="2star">☆☆ (2 星)</option>
+                    <option value="crown">👑 (皇冠)</option>
+                </select>
+
+                <!-- 系列筛选 -->
+                <select id="setFilter" class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-400">
+                    <option value="">全部扩展包</option>
+                    <option value="a1">Genetic Apex (A1)</option>
+                    <option value="a1a">Mythical Island (A1a)</option>
+                    <option value="a2">Space-Time Smackdown (A2)</option>
+                    <option value="pa">Promo-A (PA)</option>
+                </select>
+
+                <button id="searchBtn" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold px-4 py-2 rounded-lg text-sm transition-colors">
+                    查询
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主体卡牌展示区 -->
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <div id="loading" class="text-center py-20 text-slate-400">正在加载卡牌数据，请稍候...</div>
+        <div id="errorMsg" class="hidden text-center py-10 text-rose-400 bg-rose-950/30 rounded-xl border border-rose-800/50 mb-6"></div>
+        
+        <div id="contentContainer" class="space-y-10">
+            <!-- 动态渲染的系列与卡牌网格会注入到这里 -->
+        </div>
+    </main>
+
+    <!-- 前端交互逻辑 -->
+    <script>
+        async function fetchCards() {
+            const rarity = document.getElementById('rarityFilter').value;
+            const setId = document.getElementById('setFilter').value;
+            const container = document.getElementById('contentContainer');
+            const loading = document.getElementById('loading');
+            const errorMsg = document.getElementById('errorMsg');
+
+            loading.style.display = 'block';
+            errorMsg.style.display = 'none';
+            container.innerHTML = '';
+
+            try {
+                let url = '/api/cards';
+                const params = new URLSearchParams();
+                if (rarity) params.append('rarity', rarity);
+                if (setId) params.append('setId', setId);
+                if (params.toString()) url += `?${params.toString()}`;
+
+                const res = await fetch(url);
+                const json = await res.json();
+
+                if (!json.success) {
+                    throw new Error(json.error || '获取数据失败');
+                }
+
+                const sets = json.data;
+                loading.style.display = 'none';
+
+                if (sets.length === 0) {
+                    container.innerHTML = `<div class="text-center py-20 text-slate-500">没有找到符合条件的卡牌</div>`;
+                    return;
+                }
+
+                // 渲染每个扩展包下的卡牌
+                sets.forEach(set => {
+                    const section = document.createElement('div');
+                    section.className = 'bg-slate-800/50 rounded-2xl p-6 border border-slate-700/60 shadow-lg';
+                    
+                    let cardsHtml = set.cards.map(card => `
+                        <div class="bg-slate-800 rounded-xl overflow-hidden border border-slate-700 hover:border-amber-400/50 transition-all group flex flex-col">
+                            <div class="aspect-[3/4] bg-slate-900 relative overflow-hidden flex items-center justify-center p-2">
+                                <img src="${card.image}" alt="${card.name}" loading="lazy" class="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300">
+                            </div>
+                            <div class="p-3 flex flex-col flex-grow justify-between">
+                                <div>
+                                    <div class="text-xs text-amber-400 font-mono mb-1">${card.id}</div>
+                                    <h3 class="font-bold text-sm text-slate-100 truncate">${card.name}</h3>
+                                </div>
+                                <div class="mt-2 pt-2 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-400">
+                                    <span>稀有度</span>
+                                    <span class="font-mono text-slate-200">${card.rarity}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    section.innerHTML = `
+                        <div class="flex justify-between items-center mb-6 pb-3 border-b border-slate-700">
+                            <h2 class="text-xl font-bold text-slate-200">${set.setName}</h2>
+                            <span class="text-xs bg-slate-700 text-slate-300 px-3 py-1 rounded-full">共 ${set.totalCards} 张</span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                            ${cardsHtml}
+                        </div>
+                    `;
+                    container.appendChild(section);
+                });
+
+            } catch (err) {
+                loading.style.display = 'none';
+                errorMsg.style.display = 'block';
+                errorMsg.textContent = `加载出错: ${err.message}`;
+            }
+        }
+
+        // 绑定事件
+        document.getElementById('searchBtn').addEventListener('click', fetchCards);
+        
+        // 页面刚加载时自动请求一次
+        window.addEventListener('DOMContentLoaded', fetchCards);
+    </script>
+</body>
+</html>
