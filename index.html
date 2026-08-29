@@ -15,7 +15,7 @@
                 <h1 class="text-2xl font-bold bg-gradient-to-r from-amber-400 to-rose-500 bg-clip-text text-transparent">
                     TCG Pocket 卡牌交换广场
                 </h1>
-                <p class="text-xs text-slate-400 mt-0.5">严格遵循同稀有度等价交换，先选择目标稀有度，再通过卡包分支树展开勾选</p>
+                <p class="text-xs text-slate-400 mt-0.5">严格遵循同稀有度等价交换，先选择目标稀有度，再通过卡包分支展开勾选</p>
             </div>
             
             <div class="flex items-center gap-4">
@@ -96,7 +96,7 @@
             </div>
         </div>
 
-        <!-- 第二步：扩展包手风琴分支树 (Accordion Tree) -->
+        <!-- 第二步：扩展包手风琴分支树 -->
         <div id="treeContainerSection" class="mt-8 hidden space-y-4">
             <div class="flex items-center justify-between border-b border-slate-700 pb-2">
                 <div class="flex items-center gap-2">
@@ -109,7 +109,6 @@
             <div id="loading" class="text-center py-16 text-slate-400">正在载入卡包分支数据...</div>
             <div id="errorMsg" class="hidden text-center py-10 text-rose-400 bg-rose-950/30 rounded-xl border border-rose-800/50 mb-6"></div>
             
-            <!-- 手风琴列表容器 -->
             <div id="accordionContainer" class="space-y-4"></div>
         </div>
 
@@ -130,35 +129,31 @@
         </div>
     </div>
 
-    <!-- 业务脚本逻辑 -->
     <script>
         let userTradeData = JSON.parse(localStorage.getItem('tcg_trade_data') || '{"have": {}, "want": {}}');
         let currentRarity = '';
         let currentRarityLabel = '';
-        let fetchedSetsCache = [];
 
-        // 第一步：用户选择稀有度
         function selectRarity(rarityKey, rarityLabel) {
-            // 如果已经选了别的，给予提示或直接平滑切换
             currentRarity = rarityKey;
             currentRarityLabel = rarityLabel;
 
-            // 更新顶部锁定状态提示
+            // 1. 更新顶部锁定状态提示
             document.getElementById('activeRarityText').textContent = rarityLabel;
             document.getElementById('currentRarityBadge').classList.remove('hidden');
             document.getElementById('selectedRarityIndicator').textContent = `当前筛选: ${rarityLabel}`;
 
-            // 隐藏第一步选择网格，或者保持并高亮
-            document.getElementById('treeContainerSection').classList.remove('hidden');
+            // 2. 核心修复：强制显现第二步的容器
+            const treeSection = document.getElementById('treeContainerSection');
+            treeSection.classList.remove('hidden');
 
-            // 滚动到第二步区域
-            document.getElementById('treeContainerSection').scrollIntoView({ behavior: 'smooth' });
+            // 3. 滚动到第二步区域
+            treeSection.scrollIntoView({ behavior: 'smooth' });
 
-            // 拉取对应稀有度的卡包数据
+            // 4. 请求数据
             fetchCardsTree(rarityKey);
         }
 
-        // 重置稀有度选择
         function resetRarity() {
             if (confirm('更换稀有度将折叠当前卡包树，确定要重新选择吗？')) {
                 currentRarity = '';
@@ -170,7 +165,6 @@
             }
         }
 
-        // 第二步：请求并渲染手风琴分支树
         async function fetchCardsTree(rarity) {
             const container = document.getElementById('accordionContainer');
             const loading = document.getElementById('loading');
@@ -186,24 +180,22 @@
 
                 if (!json.success) throw new Error(json.error || '获取数据失败');
 
-                fetchedSetsCache = json.data;
+                const fetchedSetsCache = json.data;
                 loading.style.display = 'none';
                 updateTotalTradeCount();
 
-                if (fetchedSetsCache.length === 0) {
+                if (!fetchedSetsCache || fetchedSetsCache.length === 0) {
                     container.innerHTML = `<div class="text-center py-16 text-slate-500 bg-slate-800/40 rounded-2xl border border-slate-700">该稀有度下暂无卡牌数据</div>`;
                     return;
                 }
 
-                // 遍历每个扩展包，构建手风琴节点（默认展开第一个，或者全部展开）
                 fetchedSetsCache.forEach((set, index) => {
-                    const isOpen = index === 0; // 默认展开第一个卡包
-                    const accordionId = `set-panel-${set.setId}`;
+                    const isOpen = index === 0;
+                    const accordionId = `set-panel-${set.setId}-${index}`;
 
                     const wrapper = document.createElement('div');
                     wrapper.className = 'bg-slate-800/60 border border-slate-700 rounded-2xl overflow-hidden shadow-lg transition-all';
                     
-                    // 计算该卡包下用户已经标记了多少张
                     let packageHaveCount = 0;
                     let packageWantCount = 0;
                     set.cards.forEach(c => {
@@ -212,8 +204,7 @@
                     });
 
                     wrapper.innerHTML = `
-                        <!-- 手风琴标题栏 (点击折叠/展开) -->
-                        <button onclick="toggleAccordion('${accordionId}', this)" class="w-full px-6 py-4 flex justify-between items-center bg-slate-800 hover:bg-slate-750 transition-colors text-left">
+                        <button onclick="toggleAccordion('${accordionId}', this)" class="w-full px-6 py-4 flex justify-between items-center bg-slate-800 hover:bg-slate-755 transition-colors text-left">
                             <div class="flex items-center gap-3">
                                 <span class="text-amber-400 font-mono font-bold text-sm">📁 ${set.setId}</span>
                                 <span class="font-bold text-slate-100 text-base">${set.setName}</span>
@@ -228,7 +219,6 @@
                             </div>
                         </button>
 
-                        <!-- 手风琴内容面板 (卡牌网格) -->
                         <div id="${accordionId}" class="${isOpen ? '' : 'hidden'} p-6 border-t border-slate-700/60 bg-slate-900/40">
                             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                                 ${set.cards.map(card => {
@@ -271,7 +261,6 @@
             }
         }
 
-        // 手风琴折叠/展开切换
         function toggleAccordion(panelId, btnElement) {
             const panel = document.getElementById(panelId);
             const arrow = btnElement.querySelector(`#arrow-${panelId}`);
@@ -284,7 +273,6 @@
             }
         }
 
-        // 切换“我有 / 求”状态
         function toggleStatus(cardId, type) {
             if (type === 'have') {
                 if (userTradeData.have[cardId]) delete userTradeData.have[cardId];
@@ -295,7 +283,7 @@
             }
             localStorage.setItem('tcg_trade_data', JSON.stringify(userTradeData));
             updateTotalTradeCount();
-            if (currentRarity) fetchCardsTree(currentRarity); // 局部刷新保持状态同步
+            if (currentRarity) fetchCardsTree(currentRarity);
         }
 
         function updateTotalTradeCount() {
@@ -303,7 +291,6 @@
             document.getElementById('totalTradeCount').textContent = total;
         }
 
-        // 导出文案
         function exportTradeList() {
             let text = `【Pokémon TCG Pocket 同稀有度交换清单】\n----------------------------------\n🟢 我有的重复卡（可出）：\n`;
             const haveIds = Object.keys(userTradeData.have);
@@ -317,7 +304,7 @@
             document.getElementById('modal').classList.remove('hidden');
         }
 
-        function closeModal() { document.getElementById('modal'].classList.add('hidden'); }
+        function closeModal() { document.getElementById('modal').classList.add('hidden'); }
         function copyTradeText() {
             document.getElementById('tradeTextResult').select();
             document.execCommand('copy');
