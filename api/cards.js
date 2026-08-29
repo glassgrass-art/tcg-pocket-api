@@ -19,17 +19,21 @@ module.exports = async function handler(req, res) {
 
     const allCards = await response.json();
 
-    // 智能且宽容的稀有度归一化函数（完美支持菱形与彩色星星分级）
+    // 终极宽容的稀有度归一化函数：完美兼容 ◊、◇、◆ 各种变体与数量统计
     function parseNormRarity(rawRarity = '') {
       const r = rawRarity.toString().trim();
       const s = r.toLowerCase().replace(/[^a-z0-9]/g, '');
 
-      // 1. 匹配菱形 (1~4 钻石)
-      if (r.includes('◇') || r.includes('◆') || s === '1' || s.includes('onediamond') || s.includes('1diamond') || s === 'common') {
-        if (r.includes('◇◇◇◇') || r.includes('◆◆◆◆') || s.includes('4diamond')) return '4diamond';
-        if (r.includes('◇◇◇') || r.includes('◆◆◆') || s.includes('3diamond')) return '3diamond';
-        if (r.includes('◇◇') || r.includes('◆◆') || s.includes('2diamond')) return '2diamond';
-        return '1diamond'; // 默认单菱形
+      // 1. 动态统计所有形式的菱形数量 (支持 ◊、◇、◆)
+      if (r.includes('◊') || r.includes('◇') || r.includes('◆') || s === '1' || s.includes('diamond') || s === 'common') {
+        const diamondCount = (r.match(/[◊◇◆]/g) || []).length;
+        
+        if (diamondCount >= 4 || s.includes('4diamond') || s.includes('four')) return '4diamond';
+        if (diamondCount === 3 || s.includes('3diamond') || s.includes('three')) return '3diamond';
+        if (diamondCount === 2 || s.includes('2diamond') || s.includes('two')) return '2diamond';
+        
+        // 默认或者只有 1 个菱形符号时
+        return '1diamond';
       }
 
       // 2. 匹配彩色星星 (★) 与 双星 (☆☆) ➔ 归类为 2星 (2star)
@@ -91,8 +95,8 @@ module.exports = async function handler(req, res) {
         name: card.name,
         setId: currentSetId.toUpperCase(),
         setName: currentSetName,
-        rarity: rawRarity,
-        normRarity: normRarity,
+        rarity: rawRarity,       // 原始符号（例如网页下方展示的 ◊ 等）
+        normRarity: normRarity,   // 归一化英文标准值（用于筛选）
         image: imgUrl
       });
     });
