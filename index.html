@@ -35,79 +35,125 @@
     <!-- 主体区域 -->
     <main class="max-w-7xl mx-auto px-4 py-8">
         
-        <!-- 第一步：稀有度选择卡片网格 (使用官方图标) -->
+        <!-- 第一步：稀有度选择卡片网格 (采用官方图标完美组合) -->
         <div id="raritySelectorSection" class="space-y-4">
             <div class="flex items-center gap-2 border-b border-slate-700 pb-2">
                 <span class="bg-amber-500 text-slate-950 font-bold text-xs px-2 py-0.5 rounded">Step 1</span>
                 <h2 class="text-base font-bold text-slate-200">Select Target Rarity (Equal-Tier Trading)</h2>
             </div>
             
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-10 gap-2.5">
-                <button onclick="selectRarity('C', '◇ Common (C)')" class="rarity-card p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 text-left transition-all group flex items-center gap-2">
-                    <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" alt="C" class="w-5 h-5 object-contain">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-9 gap-2.5">
+                
+                <!-- C: 1 Diamond -->
+                <button onclick="selectRarity('C', '◇ Common (C)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start gap-1.5 transition-all group">
+                    <div class="flex items-center gap-0.5 h-4">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" alt="C" class="w-3.5 h-3.5 object-contain">
+                    </div>
                     <div>
-                        <div class="text-xs font-bold text-slate-300">◇ C</div>
-                        <div class="text-[10px] text-slate-400 truncate">Common</div>
+                        <div class="text-xs font-bold text-slate-200">C</div>
+                        <div class="text-[10px] text-slate-400">Common</div>
                     </div>
                 </button>
-                <button onclick="selectRarity('U', '◇◇ Uncommon (U)')" class="rarity-card p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 text-left transition-all group flex items-center gap-2">
-                    <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" alt="U" class="w-5 h-5 object-contain">
+
+                <!-- U: 2 Diamonds -->
+                <button onclick="selectRarity('U', '◇◇ Uncommon (U)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start gap-1.5 transition-all group">
+                    <div class="flex items-center gap-0.5 h-4">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" alt="U" class="w-3.5 h-3.5 object-contain">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" alt="U" class="w-3.5 h-3.5 object-contain">
+                    </div>
                     <div>
-                        <div class="text-xs font-bold text-slate-300">◇◇ U</div>
-                        <div class="text-[10px] text-slate-400 truncate">Uncommon</div>
+                        <div class="text-xs font-bold text-slate-200">U</div>
+                        <div class="text-[10px] text-slate-400">Uncommon</div>
                     </div>
                 </button>
-                <button onclick="selectRarity('R', '◇◇◇ Rare (R)')" class="rarity-card p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 text-left transition-all group flex items-center gap-2">
-                    <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" alt="R" class="w-5 h-5 object-contain">
+
+                <!-- R: 3 Diamonds -->
+                <button onclick="selectRarity('R', '◇◇◇ Rare (R)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start gap-1.5 transition-all group">
+                    <div class="flex items-center gap-0.5 h-4">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" alt="R" class="w-3.5 h-3.5 object-contain">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" alt="R" class="w-3.5 h-3.5 object-contain">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" alt="R" class="w-3.5 h-3.5 object-contain">
+                    </div>
                     <div>
-                        <div class="text-xs font-bold text-amber-400">◇◇◇ R</div>
-                        <div class="text-[10px] text-slate-400 truncate">Rare</div>
+                        <div class="text-xs font-bold text-amber-400">R</div>
+                        <div class="text-[10px] text-slate-400">Rare</div>
                     </div>
                 </button>
-                <button onclick="selectRarity('RR', '◇◇◇◇ Double Rare (RR)')" class="rarity-card p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 text-left transition-all group flex items-center gap-2">
-                    <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" alt="RR" class="w-5 h-5 object-contain">
+
+                <!-- RR: 4 Diamonds -->
+                <button onclick="selectRarity('RR', '◇◇◇◇ Double Rare (RR)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start gap-1.5 transition-all group">
+                    <div class="flex items-center gap-0.5 h-4">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" alt="RR" class="w-3.5 h-3.5 object-contain">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" alt="RR" class="w-3.5 h-3.5 object-contain">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" alt="RR" class="w-3.5 h-3.5 object-contain">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" alt="RR" class="w-3.5 h-3.5 object-contain">
+                    </div>
                     <div>
-                        <div class="text-xs font-bold text-amber-400">◇◇◇◇ RR</div>
-                        <div class="text-[10px] text-slate-400 truncate">Double Rare</div>
+                        <div class="text-xs font-bold text-amber-400">RR</div>
+                        <div class="text-[10px] text-slate-400">Double Rare</div>
                     </div>
                 </button>
-                <button onclick="selectRarity('AR', '★ Art Rare (AR)')" class="rarity-card p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 text-left transition-all group flex items-center gap-2">
-                    <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/star.webp" alt="AR" class="w-5 h-5 object-contain">
+
+                <!-- AR: 1 Star -->
+                <button onclick="selectRarity('AR', '★ Art Rare (AR)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start gap-1.5 transition-all group">
+                    <div class="flex items-center gap-0.5 h-4">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/star.webp" alt="AR" class="w-3.5 h-3.5 object-contain">
+                    </div>
                     <div>
-                        <div class="text-xs font-bold text-emerald-400">★ AR</div>
-                        <div class="text-[10px] text-slate-400 truncate">Art Rare</div>
+                        <div class="text-xs font-bold text-emerald-400">AR</div>
+                        <div class="text-[10px] text-slate-400">Art Rare</div>
                     </div>
                 </button>
-                <button onclick="selectRarity('SR', '☆☆ Super Rare (SR / SAR)')" class="rarity-card p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 text-left transition-all group flex items-center gap-2">
-                    <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/star.webp" alt="SR" class="w-5 h-5 object-contain">
+
+                <!-- SR / SAR: 2 Normal Stars -->
+                <button onclick="selectRarity('SR', '☆☆ Super Rare (SR / SAR)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start gap-1.5 transition-all group">
+                    <div class="flex items-center gap-0.5 h-4">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/star.webp" alt="SR" class="w-3.5 h-3.5 object-contain">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/star.webp" alt="SR" class="w-3.5 h-3.5 object-contain">
+                    </div>
                     <div>
-                        <div class="text-xs font-bold text-yellow-400">☆☆ SR / SAR</div>
-                        <div class="text-[10px] text-slate-400 truncate">Super / Special</div>
+                        <div class="text-xs font-bold text-yellow-400">SR / SAR</div>
+                        <div class="text-[10px] text-slate-400">Super / Special</div>
                     </div>
                 </button>
-                <button onclick="selectRarity('UR', '👑 Crown Rare (UR)')" class="rarity-card p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 text-left transition-all group flex items-center gap-2">
-                    <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/crown.webp" alt="UR" class="w-5 h-5 object-contain">
+
+                <!-- UR: 1 Crown -->
+                <button onclick="selectRarity('UR', '👑 Crown Rare (UR)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start gap-1.5 transition-all group">
+                    <div class="flex items-center gap-0.5 h-4">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/crown.webp" alt="UR" class="w-3.5 h-3.5 object-contain">
+                    </div>
                     <div>
-                        <div class="text-xs font-bold text-rose-400">👑 UR</div>
-                        <div class="text-[10px] text-slate-400 truncate">Crown Rare</div>
+                        <div class="text-xs font-bold text-rose-400">UR</div>
+                        <div class="text-[10px] text-slate-400">Crown Rare</div>
                     </div>
                 </button>
-                <button onclick="selectRarity('S', '✨ Shiny (S)')" class="rarity-card p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-cyan-400 text-left transition-all group flex items-center gap-2">
-                    <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/shiny-star.webp" alt="S" class="w-5 h-5 object-contain">
+
+                <!-- S: 1 Shiny Star -->
+                <button onclick="selectRarity('S', '✨ Shiny (S)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-cyan-400 flex flex-col items-start gap-1.5 transition-all group">
+                    <div class="flex items-center gap-0.5 h-4">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/shiny-star.webp" alt="S" class="w-3.5 h-3.5 object-contain">
+                    </div>
                     <div>
-                        <div class="text-xs font-bold text-cyan-400">✨ S</div>
-                        <div class="text-[10px] text-slate-400 truncate">Shiny</div>
+                        <div class="text-xs font-bold text-cyan-400">S</div>
+                        <div class="text-[10px] text-slate-400">Shiny</div>
                     </div>
                 </button>
-                <button onclick="selectRarity('SSR', '✨✨ Shiny Super Rare (SSR)')" class="rarity-card p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-cyan-400 text-left transition-all group flex items-center gap-2">
-                    <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/shiny-star.webp" alt="SSR" class="w-5 h-5 object-contain">
+
+                <!-- SSR: 2 Shiny Stars -->
+                <button onclick="selectRarity('SSR', '✨✨ Shiny Super Rare (SSR)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-cyan-400 flex flex-col items-start gap-1.5 transition-all group">
+                    <div class="flex items-center gap-0.5 h-4">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/shiny-star.webp" alt="SSR" class="w-3.5 h-3.5 object-contain">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/shiny-star.webp" alt="SSR" class="w-3.5 h-3.5 object-contain">
+                    </div>
                     <div>
-                        <div class="text-xs font-bold text-cyan-300">✨✨ SSR</div>
-                        <div class="text-[10px] text-slate-400 truncate">Shiny Super</div>
+                        <div class="text-xs font-bold text-cyan-300">SSR</div>
+                        <div class="text-[10px] text-slate-400">Shiny Super</div>
                     </div>
                 </button>
+
             </div>
         </div>
+
         <!-- 第二步：扩展包手风琴分支树 -->
         <div id="treeContainerSection" class="mt-8 hidden space-y-4">
             <div class="flex items-center justify-between border-b border-slate-700 pb-2">
@@ -249,11 +295,6 @@
                                                 <div class="mt-3 pt-2 border-t border-slate-700/50 flex justify-between gap-2">
                                                     <button onclick="toggleStatus('${card.id}', 'have')" class="flex-1 py-1 px-2 rounded text-xs font-semibold transition-colors ${isHave ? 'bg-emerald-600 text-white' : 'bg-slate-700 hover:bg-slate-600 text-slate-300'}">Have</button>
                                                     <button onclick="toggleStatus('${card.id}', 'want')" class="flex-1 py-1 px-2 rounded text-xs font-semibold transition-colors ${isWant ? 'bg-rose-600 text-white' : 'bg-slate-700 hover:bg-slate-600 text-slate-300'}">Want</button>
-                                                </div>
-                                                <!-- 使用后端传过来的官方稀有度图标替换纯文本 -->
-                                                <div class="mt-2 flex items-center justify-center gap-1">
-                                                    <img src="${card.rarityIcon}" alt="${card.normRarity}" class="w-4 h-4 object-contain">
-                                                    <span class="text-[10px] text-slate-400 font-mono font-bold">${card.rarity}</span>
                                                 </div>
                                             </div>
                                         </div>
