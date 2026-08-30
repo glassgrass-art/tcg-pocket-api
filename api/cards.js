@@ -3,18 +3,25 @@ module.exports = async function handler(req, res) {
   res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate');
 
   const { rarity = '', setId = '' } = req.query || {};
+  
+  // 获取环境变量中的 Token
+  const GITHUB_TOKEN = process.env.GH_ACCESS_TOKEN;
 
   try {
-    // 1. 将 DATA_URL 改为你自己的 GitHub 仓库 raw 链接或 jsDelivr 加速链接
-    // （注意：因为你的仓库是 Private 私密的，jsDelivr 可能会有缓存限制，建议直接用 GitHub 原始文件 raw 链接或带有 token 的访问，如果公开了仓库则可以直接用 jsDelivr）
-    const DATA_URL = 'https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/cards.json';
+    // 换用 GitHub 官方 API 路径获取文件内容（支持私密仓库）
+    const DATA_URL = 'https://api.github.com/repos/glassgrass-art/tcg-pocket-api/contents/dist/cards.json';
     
+    const fetchHeaders = {
+      'User-Agent': 'Mozilla/5.0',
+      'Accept': 'application/vnd.github.v3.raw' // 关键：这个头可以直接把私密文件当成 raw 文本拿下来
+    };
+    
+    if (GITHUB_TOKEN) {
+      fetchHeaders['Authorization'] = `Bearer ${GITHUB_TOKEN}`;
+    }
+
     const response = await fetch(DATA_URL, {
-      headers: { 
-        'User-Agent': 'Mozilla/5.0',
-        // 如果仓库是 Private 私密的，这里以后可能需要带上你的 GitHub Personal Access Token：
-        // 'Authorization': 'token 你的GitHubToken'
-      },
+      headers: fetchHeaders,
       signal: AbortSignal.timeout(9000)
     });
 
@@ -44,7 +51,7 @@ module.exports = async function handler(req, res) {
         };
       }
 
-      // 2. 将图片路径拼接指向你自己的仓库路径结构 (对照你刚截图里的目录结构：dist/images/cards-by-set/套装名/卡号.webp)
+      // 图片路径继续使用官方 API 链接或者你原先的私密直连
       const imgUrl = `https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/cards-by-set/${currentSetIdUpper}/${card.number}.webp`;
 
       setsMap[currentSetId].cards.push({
