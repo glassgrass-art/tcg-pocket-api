@@ -5,8 +5,8 @@ module.exports = async function handler(req, res) {
   const { rarity = '', setId = '' } = req.query || {};
 
   try {
-    // 切换到 flibustier 的完整数据源
-    const DATA_URL = 'https://raw.githubusercontent.com/flibustier/pokemon-tcg-pocket-database/main/cards.json';
+    // 使用 flibustier 官方推荐的稳定 jsDelivr CDN 地址
+    const DATA_URL = 'https://cdn.jsdelivr.net/npm/pokemon-tcg-pocket-database/dist/cards.json';
     
     const response = await fetch(DATA_URL, {
       headers: { 'User-Agent': 'Mozilla/5.0' },
@@ -21,13 +21,12 @@ module.exports = async function handler(req, res) {
     const setsMap = {};
 
     allCards.forEach(card => {
-      // flibustier 数据结构中字段通常为 card.set, card.number, card.name, card.rarity, card.image
+      // 适配 flibustier 的字段结构: card.set, card.number, card.name, card.rarity, card.image
       const currentSetId = (card.set || 'other').toLowerCase();
       const currentSetIdUpper = currentSetId.toUpperCase();
 
       if (targetSetId && currentSetId !== targetSetId) return;
 
-      // 直接获取官方规范稀有度代号 (如 C, U, R, RR, SR, AR, SAR, IM, UR, S, SSR 等)
       const rawRarity = (card.rarity || 'C').toUpperCase();
       const normRarity = rawRarity;
 
@@ -41,9 +40,9 @@ module.exports = async function handler(req, res) {
         };
       }
 
-      // flibustier 的图片拼接规则: cards-by-set/{set}/{number}.webp 或自带 image 字段
+      // 组装图片链接：若自带 image 字段或通过 cards-by-set 目录拼装
       const imgUrl = card.image 
-        ? `https://raw.githubusercontent.com/flibustier/pokemon-tcg-pocket-database/main/images/${card.image}` 
+        ? `https://cdn.jsdelivr.net/npm/pokemon-tcg-pocket-database/dist/images/${card.image}` 
         : `https://raw.githubusercontent.com/flibustier/pokemon-tcg-pocket-database/main/cards-by-set/${currentSetId}/${card.number}.webp`;
 
       setsMap[currentSetId].cards.push({
