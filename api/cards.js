@@ -38,8 +38,8 @@ module.exports = async function handler(req, res) {
         };
       }
 
-      // 根据官方文档：cards-by-set 目录位于根路径下，通过 CDN 稳妥拼装
-      const imgUrl = `https://cdn.jsdelivr.net/npm/pokemon-tcg-pocket-database/cards-by-set/${currentSetId}/${card.number}.webp`;
+      // 根据你截图中提供的真实有效路径进行拼接 (flibustier/pokemon-tcg-exchange/public/images/cards)
+      const imgUrl = `https://cdn.jsdelivr.net/gh/flibustier/pokemon-tcg-exchange@main/public/images/cards/${currentSetId}/${card.number}.webp`;
 
       setsMap[currentSetId].cards.push({
         id: `${currentSetIdUpper}-${card.number}`,
