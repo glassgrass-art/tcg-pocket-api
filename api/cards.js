@@ -5,10 +5,16 @@ module.exports = async function handler(req, res) {
   const { rarity = '', setId = '' } = req.query || {};
 
   try {
-    const DATA_URL = 'https://cdn.jsdelivr.net/npm/pokemon-tcg-pocket-database/dist/cards.json';
+    // 1. 将 DATA_URL 改为你自己的 GitHub 仓库 raw 链接或 jsDelivr 加速链接
+    // （注意：因为你的仓库是 Private 私密的，jsDelivr 可能会有缓存限制，建议直接用 GitHub 原始文件 raw 链接或带有 token 的访问，如果公开了仓库则可以直接用 jsDelivr）
+    const DATA_URL = 'https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/cards.json';
     
     const response = await fetch(DATA_URL, {
-      headers: { 'User-Agent': 'Mozilla/5.0' },
+      headers: { 
+        'User-Agent': 'Mozilla/5.0',
+        // 如果仓库是 Private 私密的，这里以后可能需要带上你的 GitHub Personal Access Token：
+        // 'Authorization': 'token 你的GitHubToken'
+      },
       signal: AbortSignal.timeout(9000)
     });
 
@@ -38,8 +44,8 @@ module.exports = async function handler(req, res) {
         };
       }
 
-      // 根据你截图中提供的真实有效路径进行拼接 (flibustier/pokemon-tcg-exchange/public/images/cards)
-      const imgUrl = `https://cdn.jsdelivr.net/gh/flibustier/pokemon-tcg-exchange@main/public/images/cards/${currentSetId}/${card.number}.webp`;
+      // 2. 将图片路径拼接指向你自己的仓库路径结构 (对照你刚截图里的目录结构：dist/images/cards-by-set/套装名/卡号.webp)
+      const imgUrl = `https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/cards-by-set/${currentSetIdUpper}/${card.number}.webp`;
 
       setsMap[currentSetId].cards.push({
         id: `${currentSetIdUpper}-${card.number}`,
