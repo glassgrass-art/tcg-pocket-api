@@ -5,7 +5,6 @@ module.exports = async function handler(req, res) {
   const { rarity = '', setId = '' } = req.query || {};
 
   try {
-    // 使用 flibustier 官方推荐的稳定 jsDelivr CDN 地址
     const DATA_URL = 'https://cdn.jsdelivr.net/npm/pokemon-tcg-pocket-database/dist/cards.json';
     
     const response = await fetch(DATA_URL, {
@@ -21,7 +20,6 @@ module.exports = async function handler(req, res) {
     const setsMap = {};
 
     allCards.forEach(card => {
-      // 适配 flibustier 的字段结构: card.set, card.number, card.name, card.rarity, card.image
       const currentSetId = (card.set || 'other').toLowerCase();
       const currentSetIdUpper = currentSetId.toUpperCase();
 
@@ -40,10 +38,17 @@ module.exports = async function handler(req, res) {
         };
       }
 
-      // 组装图片链接：若自带 image 字段或通过 cards-by-set 目录拼装
-      const imgUrl = card.image 
-        ? `https://cdn.jsdelivr.net/npm/pokemon-tcg-pocket-database/dist/images/${card.image}` 
-        : `https://raw.githubusercontent.com/flibustier/pokemon-tcg-pocket-database/main/cards-by-set/${currentSetId}/${card.number}.webp`;
+      // 修正图片链接：优先使用 card.image 字段，如果没有则通过标准的 jsDelivr 路径拼接
+      let imgUrl = card.image;
+      if (imgUrl) {
+        // 如果 image 字段是相对路径，拼上 jsDelivr 的 dist/images 目录
+        if (!imgUrl.startsWith('http')) {
+          imgUrl = `https://cdn.jsdelivr.net/npm/pokemon-tcg-pocket-database/dist/images/${imgUrl}`;
+        }
+      } else {
+        // 兜底：使用标准编号路径
+        imgUrl = `https://cdn.jsdelivr.net/npm/pokemon-tcg-pocket-database/dist/images/${currentSetId}/${card.number}.webp`;
+      }
 
       setsMap[currentSetId].cards.push({
         id: `${currentSetIdUpper}-${card.number}`,
