@@ -29,7 +29,6 @@ module.exports = async function handler(req, res) {
     const targetSetId = setId ? setId.toLowerCase() : '';
     const setsMap = {};
 
-    // 你截图里实际存在的真实文件夹白名单（用于精准匹配目录名）
     const validFolders = [
       'B3a', 'A4a', 'A2b', 'A1', 'A3a', 'B1', 'B4a', 'PROMO-B', 
       'B2b', 'B3b', 'A1a', 'A4b', 'A2a', 'A2', 'A3b', 'B4', 
@@ -37,8 +36,22 @@ module.exports = async function handler(req, res) {
     ];
     const folderMap = {};
     validFolders.forEach(f => {
-      folderMap[f.toLowerCase()] = f; // 用小写做key，映射到真实大小写文件夹名
+      folderMap[f.toLowerCase()] = f;
     });
+
+    // 官方稀有度图标映射（对应你截图里的 dist/images/rarities/）
+    const rarityIconMap = {
+      'C': 'diamond.webp',
+      'U': 'diamond.webp',
+      'R': 'diamond.webp',
+      'RR': 'diamond.webp',
+      'AR': 'star.webp',
+      'SR': 'shiny-star.webp',   // 二星（SR/SAR共用）
+      'SAR': 'shiny-star.webp',  // 二星（SR/SAR共用）
+      'UR': 'crown.webp',
+      'S': 'shiny-star.webp',
+      'SSR': 'shiny-star.webp'
+    };
 
     allCards.forEach(card => {
       const rawSet = (card.set || 'other').trim();
@@ -49,7 +62,15 @@ module.exports = async function handler(req, res) {
       if (targetSetId && currentSetId !== targetSetId) return;
 
       const rawRarity = (card.rarity || 'C').toUpperCase();
-      const normRarity = rawRarity;
+
+      // 1. 过滤掉 IM（无法交换）
+      if (rawRarity === 'IM') return;
+
+      // 2. 将 SAR 归一化合并到 SR（在游戏里都是二星）
+      let normRarity = rawRarity;
+      if (rawRarity === 'SAR') {
+        normRarity = 'SR';
+      }
 
       if (targetNormRarity && normRarity !== targetNormRarity) return;
 
@@ -61,25 +82,27 @@ module.exports = async function handler(req, res) {
         };
       }
 
-      // 智能匹配你截图里实际存在的文件夹目录名称，防止因大小写或横杠导致图片找不到
       let matchedFolderName = folderMap[lowerSet] || rawSet;
-      // 如果属于 promo 这类，做个兜底
       if (lowerSet.includes('promo')) {
         if (lowerSet.includes('b')) matchedFolderName = 'PROMO-B';
         else matchedFolderName = 'PROMO-A';
       }
 
-      // 拼出精准指向你仓库中对应文件夹的图片路径
       const imgUrl = `https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/cards-by-set/${matchedFolderName}/${card.number}.webp`;
+      
+      // 匹配官方稀有度图标路径
+      const iconFileName = rarityIconMap[normRarity] || 'star.webp';
+      const rarityIconUrl = `https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/${iconFileName}`;
 
       setsMap[currentSetId].cards.push({
         id: `${currentSetIdUpper}-${card.number}`,
         name: card.name,
         setId: currentSetIdUpper,
         setName: `Expansion ${currentSetIdUpper}`,
-        rarity: rawRarity,
-        normRarity: normRarity,
-        image: imgUrl
+        rarity: rawRarity, // 保留原始稀有度标签
+        normRarity: normRarity, // 归一化后的稀有度（SR和SAR会统一）
+        image: imgUrl,
+        rarityIcon: rarityIconUrl // 官方稀有度图标
       });
     });
 
