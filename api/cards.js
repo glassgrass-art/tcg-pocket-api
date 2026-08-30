@@ -3,17 +3,14 @@ module.exports = async function handler(req, res) {
   res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate');
 
   const { rarity = '', setId = '' } = req.query || {};
-  
-  // 获取环境变量中的 Token
   const GITHUB_TOKEN = process.env.GH_ACCESS_TOKEN;
 
   try {
-    // 换用 GitHub 官方 API 路径获取文件内容（支持私密仓库）
     const DATA_URL = 'https://api.github.com/repos/glassgrass-art/tcg-pocket-api/contents/dist/cards.json';
     
     const fetchHeaders = {
       'User-Agent': 'Mozilla/5.0',
-      'Accept': 'application/vnd.github.v3.raw' // 关键：这个头可以直接把私密文件当成 raw 文本拿下来
+      'Accept': 'application/vnd.github.v3.raw'
     };
     
     if (GITHUB_TOKEN) {
@@ -32,9 +29,22 @@ module.exports = async function handler(req, res) {
     const targetSetId = setId ? setId.toLowerCase() : '';
     const setsMap = {};
 
+    // 你截图里实际存在的真实文件夹白名单（用于精准匹配目录名）
+    const validFolders = [
+      'B3a', 'A4a', 'A2b', 'A1', 'A3a', 'B1', 'B4a', 'PROMO-B', 
+      'B2b', 'B3b', 'A1a', 'A4b', 'A2a', 'A2', 'A3b', 'B4', 
+      'B3', 'B2', 'A3', 'A4', 'B1a', 'PROMO-A', 'B2a'
+    ];
+    const folderMap = {};
+    validFolders.forEach(f => {
+      folderMap[f.toLowerCase()] = f; // 用小写做key，映射到真实大小写文件夹名
+    });
+
     allCards.forEach(card => {
-      const currentSetId = (card.set || 'other').toLowerCase();
-      const currentSetIdUpper = currentSetId.toUpperCase();
+      const rawSet = (card.set || 'other').trim();
+      const lowerSet = rawSet.toLowerCase();
+      const currentSetId = lowerSet;
+      const currentSetIdUpper = rawSet.toUpperCase();
 
       if (targetSetId && currentSetId !== targetSetId) return;
 
@@ -51,8 +61,16 @@ module.exports = async function handler(req, res) {
         };
       }
 
-      // 图片路径继续使用官方 API 链接或者你原先的私密直连
-      const imgUrl = `https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/cards-by-set/${currentSetIdUpper}/${card.number}.webp`;
+      // 智能匹配你截图里实际存在的文件夹目录名称，防止因大小写或横杠导致图片找不到
+      let matchedFolderName = folderMap[lowerSet] || rawSet;
+      // 如果属于 promo 这类，做个兜底
+      if (lowerSet.includes('promo')) {
+        if (lowerSet.includes('b')) matchedFolderName = 'PROMO-B';
+        else matchedFolderName = 'PROMO-A';
+      }
+
+      // 拼出精准指向你仓库中对应文件夹的图片路径
+      const imgUrl = `https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/cards-by-set/${matchedFolderName}/${card.number}.webp`;
 
       setsMap[currentSetId].cards.push({
         id: `${currentSetIdUpper}-${card.number}`,
