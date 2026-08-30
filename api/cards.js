@@ -15,10 +15,19 @@ module.exports = async function handler(req, res) {
     if (!response.ok) throw new Error(`Upstream Data Fetch Failed: ${response.status}`);
     const allCards = await response.json();
 
-    // 映射为标准的稀有度简写 (C, U, R, RR, SR, AR, SAR, IM, UR)
+    // 映射为标准的稀有度简写 (C, U, R, RR, SR, AR, SAR, IM, UR, S, SSR)
     function parseStandardRarity(rawRarity = '', cardMeta = {}) {
       const r = rawRarity.toString().trim();
       const s = r.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+      // 0. 闪卡系列 (Shiny: S, SSR)
+      // 如果后端上游字段明确包含 shiny 或是类似 shiny-star 标记，或者简写匹配
+      if (s === 'ssr' || s.includes('shinysuperrare') || r.includes('✨✨')) {
+        return 'SSR';
+      }
+      if (s === 's' || s.includes('shiny') || r.includes('✨')) {
+        return 'S';
+      }
 
       // 1. 冠位/Immersive (Crown / Immersive)
       if (r.includes('👑') || r.includes('♛') || s.includes('crown') || s.includes('ur')) {
@@ -29,7 +38,7 @@ module.exports = async function handler(req, res) {
       }
 
       // 2. 特殊插画 (SAR) / 超级稀有 (SR)
-      if (s.includes('sar') || s.includes('specialart') || r.includes('★★') && s.includes('ex')) {
+      if (s.includes('sar') || s.includes('specialart') || (r.includes('★★') && s.includes('ex'))) {
         return 'SAR';
       }
       if (s.includes('sr') || s.includes('2star') || r.includes('☆☆')) {
@@ -42,7 +51,7 @@ module.exports = async function handler(req, res) {
       }
 
       // 4. 双红卡 / 双星等对应高阶稀有度 (RR)
-      if (s.includes('rr') || s.includes('doublerare') || (r.includes('◇◇◇◇') || s.includes('4diamond') && s.includes('ex'))) {
+      if (s.includes('rr') || s.includes('doublerare') || (r.includes('◇◇◇◇') || (s.includes('4diamond') && s.includes('ex')))) {
         return 'RR';
       }
 
@@ -91,7 +100,7 @@ module.exports = async function handler(req, res) {
         setId: currentSetId.toUpperCase(),
         setName: currentSetName,
         rarity: rawRarity,
-        normRarity: normRarity, // 此时输出为标准的 'C', 'U', 'R', 'RR', 'SR', 'AR', 'SAR', 'IM', 'UR'
+        normRarity: normRarity, // 标准输出：C, U, R, RR, SR, AR, SAR, IM, UR, S, SSR
         image: imgUrl
       });
     });
