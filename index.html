@@ -32,9 +32,27 @@
     </header>
 
     <!-- 主体区域 -->
-    <main class="max-w-7xl mx-auto px-4 py-8">
+    <main class="max-w-7xl mx-auto px-4 py-8 space-y-8">
         
-        <!-- 第一步：官方稀有度图标选择区 -->
+        <!-- 0. 视频教程组件 (预留 5 秒短视频) -->
+        <div class="bg-slate-800/80 border border-amber-500/30 rounded-2xl p-4 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-amber-500/20 p-2.5 rounded-xl text-amber-400 text-xl font-bold">🎬</div>
+                <div>
+                    <h3 class="text-sm font-bold text-slate-100">Quick Video Guide (5s)</h3>
+                    <p class="text-xs text-slate-400">Learn how to select equal-rarity cards and generate trade ID in seconds.</p>
+                </div>
+            </div>
+            <!-- 视频播放窗口 (待上传视频后替换 src) -->
+            <div class="w-full md:w-80 aspect-video bg-slate-950 rounded-xl overflow-hidden border border-slate-700 flex items-center justify-center relative group">
+                <video id="tutorialVideo" controls class="w-full h-full object-cover" poster="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp">
+                    <source src="YOUR_VIDEO_URL_HERE.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        </div>
+
+        <!-- Step 1：官方稀有度选择（图标与简称同一行） -->
         <div id="raritySelectorSection" class="space-y-4">
             <div class="flex items-center gap-2 border-b border-slate-700 pb-2">
                 <span class="bg-amber-500 text-slate-950 font-bold text-xs px-2 py-0.5 rounded">Step 1</span>
@@ -43,118 +61,100 @@
             
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-9 gap-2.5">
                 
-                <!-- C: 1 Diamond -->
-                <button onclick="selectRarity('C', '◇ Common (C)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start gap-1.5 transition-all group">
-                    <div class="flex items-center gap-0.5 h-4">
-                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" alt="C" class="w-3.5 h-3.5 object-contain">
+                <!-- C -->
+                <button onclick="selectRarity('C', '◇ Common (C)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start justify-between gap-1.5 transition-all">
+                    <div class="flex items-center gap-1.5">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" class="w-3.5 h-3.5 object-contain">
+                        <span class="text-xs font-bold text-slate-200">C</span>
                     </div>
-                    <div>
-                        <div class="text-xs font-bold text-slate-200">C</div>
-                        <div class="text-[10px] text-slate-400">Common</div>
-                    </div>
+                    <div class="text-[10px] text-slate-400">Common</div>
                 </button>
 
-                <!-- U: 2 Diamonds -->
-                <button onclick="selectRarity('U', '◇◇ Uncommon (U)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start gap-1.5 transition-all group">
-                    <div class="flex items-center gap-0.5 h-4">
-                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" alt="U" class="w-3.5 h-3.5 object-contain">
-                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" alt="U" class="w-3.5 h-3.5 object-contain">
+                <!-- U -->
+                <button onclick="selectRarity('U', '◇◇ Uncommon (U)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start justify-between gap-1.5 transition-all">
+                    <div class="flex items-center gap-1">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" class="w-3.5 h-3.5 object-contain">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" class="w-3.5 h-3.5 object-contain">
+                        <span class="text-xs font-bold text-slate-200 ml-0.5">U</span>
                     </div>
-                    <div>
-                        <div class="text-xs font-bold text-slate-200">U</div>
-                        <div class="text-[10px] text-slate-400">Uncommon</div>
-                    </div>
+                    <div class="text-[10px] text-slate-400">Uncommon</div>
                 </button>
 
-                <!-- R: 3 Diamonds -->
-                <button onclick="selectRarity('R', '◇◇◇ Rare (R)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start gap-1.5 transition-all group">
-                    <div class="flex items-center gap-0.5 h-4">
-                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" alt="R" class="w-3.5 h-3.5 object-contain">
-                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" alt="R" class="w-3.5 h-3.5 object-contain">
-                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" alt="R" class="w-3.5 h-3.5 object-contain">
+                <!-- R -->
+                <button onclick="selectRarity('R', '◇◇◇ Rare (R)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start justify-between gap-1.5 transition-all">
+                    <div class="flex items-center gap-1">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" class="w-3 h-3 object-contain">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" class="w-3 h-3 object-contain">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" class="w-3 h-3 object-contain">
+                        <span class="text-xs font-bold text-amber-400 ml-0.5">R</span>
                     </div>
-                    <div>
-                        <div class="text-xs font-bold text-amber-400">R</div>
-                        <div class="text-[10px] text-slate-400">Rare</div>
-                    </div>
+                    <div class="text-[10px] text-slate-400">Rare</div>
                 </button>
 
-                <!-- RR: 4 Diamonds -->
-                <button onclick="selectRarity('RR', '◇◇◇◇ Double Rare (RR)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start gap-1.5 transition-all group">
-                    <div class="flex items-center gap-0.5 h-4">
-                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" alt="RR" class="w-3.5 h-3.5 object-contain">
-                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" alt="RR" class="w-3.5 h-3.5 object-contain">
-                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" alt="RR" class="w-3.5 h-3.5 object-contain">
-                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" alt="RR" class="w-3.5 h-3.5 object-contain">
+                <!-- RR -->
+                <button onclick="selectRarity('RR', '◇◇◇◇ Double Rare (RR)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start justify-between gap-1.5 transition-all">
+                    <div class="flex items-center gap-0.5">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" class="w-2.5 h-2.5 object-contain">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" class="w-2.5 h-2.5 object-contain">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" class="w-2.5 h-2.5 object-contain">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" class="w-2.5 h-2.5 object-contain">
+                        <span class="text-xs font-bold text-amber-400 ml-0.5">RR</span>
                     </div>
-                    <div>
-                        <div class="text-xs font-bold text-amber-400">RR</div>
-                        <div class="text-[10px] text-slate-400">Double Rare</div>
-                    </div>
+                    <div class="text-[10px] text-slate-400">Double Rare</div>
                 </button>
 
-                <!-- AR: 1 Star -->
-                <button onclick="selectRarity('AR', '★ Art Rare (AR)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start gap-1.5 transition-all group">
-                    <div class="flex items-center gap-0.5 h-4">
-                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/star.webp" alt="AR" class="w-3.5 h-3.5 object-contain">
+                <!-- AR -->
+                <button onclick="selectRarity('AR', '★ Art Rare (AR)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start justify-between gap-1.5 transition-all">
+                    <div class="flex items-center gap-1.5">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/star.webp" class="w-3.5 h-3.5 object-contain">
+                        <span class="text-xs font-bold text-emerald-400">AR</span>
                     </div>
-                    <div>
-                        <div class="text-xs font-bold text-emerald-400">AR</div>
-                        <div class="text-[10px] text-slate-400">Art Rare</div>
-                    </div>
+                    <div class="text-[10px] text-slate-400">Art Rare</div>
                 </button>
 
-                <!-- SR / SAR: 2 Stars -->
-                <button onclick="selectRarity('SR', '☆☆ Super Rare (SR / SAR)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start gap-1.5 transition-all group">
-                    <div class="flex items-center gap-0.5 h-4">
-                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/star.webp" alt="SR" class="w-3.5 h-3.5 object-contain">
-                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/star.webp" alt="SR" class="w-3.5 h-3.5 object-contain">
+                <!-- SR / SAR -->
+                <button onclick="selectRarity('SR', '☆☆ Super Rare (SR / SAR)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start justify-between gap-1.5 transition-all">
+                    <div class="flex items-center gap-1">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/star.webp" class="w-3 h-3 object-contain">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/star.webp" class="w-3 h-3 object-contain">
+                        <span class="text-xs font-bold text-yellow-400 ml-0.5">SR/SAR</span>
                     </div>
-                    <div>
-                        <div class="text-xs font-bold text-yellow-400">SR / SAR</div>
-                        <div class="text-[10px] text-slate-400">Super / Special</div>
-                    </div>
+                    <div class="text-[10px] text-slate-400">Super Rare</div>
                 </button>
 
-                <!-- UR: 1 Crown -->
-                <button onclick="selectRarity('UR', '👑 Crown Rare (UR)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start gap-1.5 transition-all group">
-                    <div class="flex items-center gap-0.5 h-4">
-                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/crown.webp" alt="UR" class="w-3.5 h-3.5 object-contain">
+                <!-- UR -->
+                <button onclick="selectRarity('UR', '👑 Crown Rare (UR)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start justify-between gap-1.5 transition-all">
+                    <div class="flex items-center gap-1.5">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/crown.webp" class="w-3.5 h-3.5 object-contain">
+                        <span class="text-xs font-bold text-rose-400">UR</span>
                     </div>
-                    <div>
-                        <div class="text-xs font-bold text-rose-400">UR</div>
-                        <div class="text-[10px] text-slate-400">Crown Rare</div>
-                    </div>
+                    <div class="text-[10px] text-slate-400">Crown Rare</div>
                 </button>
 
-                <!-- S: 1 Shiny Star -->
-                <button onclick="selectRarity('S', '✨ Shiny (S)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-cyan-400 flex flex-col items-start gap-1.5 transition-all group">
-                    <div class="flex items-center gap-0.5 h-4">
-                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/shiny-star.webp" alt="S" class="w-3.5 h-3.5 object-contain">
+                <!-- S -->
+                <button onclick="selectRarity('S', '✨ Shiny (S)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-cyan-400 flex flex-col items-start justify-between gap-1.5 transition-all">
+                    <div class="flex items-center gap-1.5">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/shiny-star.webp" class="w-3.5 h-3.5 object-contain">
+                        <span class="text-xs font-bold text-cyan-400">S</span>
                     </div>
-                    <div>
-                        <div class="text-xs font-bold text-cyan-400">S</div>
-                        <div class="text-[10px] text-slate-400">Shiny</div>
-                    </div>
+                    <div class="text-[10px] text-slate-400">Shiny</div>
                 </button>
 
-                <!-- SSR: 2 Shiny Stars -->
-                <button onclick="selectRarity('SSR', '✨✨ Shiny Super Rare (SSR)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-cyan-400 flex flex-col items-start gap-1.5 transition-all group">
-                    <div class="flex items-center gap-0.5 h-4">
-                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/shiny-star.webp" alt="SSR" class="w-3.5 h-3.5 object-contain">
-                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/shiny-star.webp" alt="SSR" class="w-3.5 h-3.5 object-contain">
+                <!-- SSR -->
+                <button onclick="selectRarity('SSR', '✨✨ Shiny Super Rare (SSR)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-cyan-400 flex flex-col items-start justify-between gap-1.5 transition-all">
+                    <div class="flex items-center gap-1">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/shiny-star.webp" class="w-3 h-3 object-contain">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/shiny-star.webp" class="w-3 h-3 object-contain">
+                        <span class="text-xs font-bold text-cyan-300 ml-0.5">SSR</span>
                     </div>
-                    <div>
-                        <div class="text-xs font-bold text-cyan-300">SSR</div>
-                        <div class="text-[10px] text-slate-400">Shiny Super</div>
-                    </div>
+                    <div class="text-[10px] text-slate-400">Shiny Super</div>
                 </button>
 
             </div>
         </div>
 
-        <!-- 第二步：扩展包手风琴分支树 -->
-        <div id="treeContainerSection" class="mt-8 hidden space-y-4">
+        <!-- Step 2：扩展包树状选择区 -->
+        <div id="treeContainerSection" class="hidden space-y-4">
             <div class="flex items-center justify-between border-b border-slate-700 pb-2">
                 <div class="flex items-center gap-2">
                     <span class="bg-indigo-600 text-white font-bold text-xs px-2 py-0.5 rounded">Step 2</span>
@@ -163,25 +163,64 @@
                 <span class="text-xs text-slate-400 font-mono" id="selectedRarityIndicator"></span>
             </div>
 
+            <!-- Have / Want 状态双选提示警示 -->
+            <div id="validationWarning" class="hidden bg-amber-500/10 border border-amber-500/40 text-amber-300 px-4 py-3 rounded-xl text-xs flex items-center justify-between">
+                <span>⚠️ <strong>Selection Required:</strong> You must select at least 1 <strong>HAVE</strong> card and 1 <strong>WANT</strong> card to proceed to Step 3.</span>
+            </div>
+
             <div id="loading" class="text-center py-16 text-slate-400">Loading expansion database...</div>
-            <div id="errorMsg" class="hidden text-center py-10 text-rose-400 bg-rose-950/30 rounded-xl border border-rose-800/50 mb-6"></div>
+            <div id="errorMsg" class="hidden text-center py-10 text-rose-400 bg-rose-950/30 rounded-xl border border-rose-800/50"></div>
             
             <div id="accordionContainer" class="space-y-4"></div>
         </div>
 
+        <!-- Step 3：16位Player ID防呆与提交匹配 -->
+        <div id="step3Section" class="hidden bg-slate-800/90 border border-slate-700 rounded-2xl p-6 shadow-2xl space-y-4">
+            <div class="flex items-center gap-2 border-b border-slate-700 pb-3">
+                <span class="bg-emerald-500 text-slate-950 font-bold text-xs px-2 py-0.5 rounded">Step 3</span>
+                <h2 class="text-base font-bold text-slate-100">Enter Your Game Player ID (16 Digits)</h2>
+            </div>
+
+            <p class="text-xs text-slate-400">Provide your 16-digit In-Game ID (e.g. 1234-5678-9012-3456) so matched trade partners can add you.</p>
+
+            <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                <div class="relative w-full sm:w-96">
+                    <input 
+                        type="text" 
+                        id="playerIdInput" 
+                        maxlength="19" 
+                        placeholder="xxxx-xxxx-xxxx-xxxx"
+                        oninput="formatAndValidatePlayerId(this)"
+                        class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm font-mono tracking-widest text-slate-100 focus:outline-none transition-colors"
+                    >
+                    <span id="playerIdStatus" class="absolute right-3 top-3.5 text-xs font-bold text-slate-500">0/16</span>
+                </div>
+
+                <button 
+                    id="submitTradeBtn" 
+                    disabled 
+                    onclick="exportTradeList()" 
+                    class="w-full sm:w-auto px-6 py-3 bg-slate-700 text-slate-400 font-bold text-sm rounded-xl transition-all cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                    🚀 Submit & Generate Trade Request
+                </button>
+            </div>
+            <div id="playerIdError" class="text-xs text-rose-400 font-mono hidden"></div>
+        </div>
+
     </main>
 
-    <!-- 弹窗：导出交换清单 -->
+    <!-- 导出弹窗 -->
     <div id="modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
             <h3 class="text-lg font-bold text-slate-100 flex justify-between items-center">
                 <span>Standard Rarity Trade List</span>
                 <button onclick="closeModal()" class="text-slate-400 hover:text-white text-sm">✕</button>
             </h3>
-            <textarea id="tradeTextResult" class="w-full h-40 bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-slate-300 font-mono focus:outline-none" readonly></textarea>
+            <textarea id="tradeTextResult" class="w-full h-48 bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-slate-300 font-mono focus:outline-none" readonly></textarea>
             <div class="flex justify-end gap-3">
                 <button onclick="closeModal()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-sm">Close</button>
-                <button onclick="copyTradeText()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold rounded-lg text-sm">Copy Text</button>
+                <button onclick="copyTradeText()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold rounded-lg text-sm">Copy Trade Post</button>
             </div>
         </div>
     </div>
@@ -199,9 +238,8 @@
             document.getElementById('currentRarityBadge').classList.remove('hidden');
             document.getElementById('selectedRarityIndicator').textContent = `Active Filter: ${rarityLabel}`;
 
-            const treeSection = document.getElementById('treeContainerSection');
-            treeSection.classList.remove('hidden');
-            treeSection.scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('treeContainerSection').classList.remove('hidden');
+            document.getElementById('step3Section').classList.remove('hidden');
 
             fetchCardsTree(rarityKey);
         }
@@ -212,6 +250,7 @@
                 currentRarityLabel = '';
                 document.getElementById('currentRarityBadge').classList.add('hidden');
                 document.getElementById('treeContainerSection').classList.add('hidden');
+                document.getElementById('step3Section').classList.add('hidden');
                 document.getElementById('accordionContainer').innerHTML = '';
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
@@ -234,7 +273,7 @@
 
                 const fetchedSetsCache = json.data;
                 loading.style.display = 'none';
-                updateTotalTradeCount();
+                updateTradeValidation();
 
                 if (!fetchedSetsCache || fetchedSetsCache.length === 0) {
                     container.innerHTML = `<div class="text-center py-16 text-slate-500 bg-slate-800/40 rounded-2xl border border-slate-700">No cards found for this standard rarity tag.</div>`;
@@ -286,7 +325,6 @@
                                                     ${isWant ? '<span class="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow">Want</span>' : ''}
                                                 </div>
                                             </div>
-                                            <!-- 彻底移除了底部的稀有度标签，只保留编号与卡名 -->
                                             <div class="p-3 flex flex-col flex-grow justify-between">
                                                 <div>
                                                     <div class="text-xs text-amber-400 font-mono mb-1">${card.id}</div>
@@ -334,23 +372,91 @@
                 else { userTradeData.want[cardId] = true; delete userTradeData.have[cardId]; }
             }
             localStorage.setItem('tcg_trade_data', JSON.stringify(userTradeData));
-            updateTotalTradeCount();
+            updateTradeValidation();
             if (currentRarity) fetchCardsTree(currentRarity);
         }
 
-        function updateTotalTradeCount() {
-            const total = Object.keys(userTradeData.have).length + Object.keys(userTradeData.want).length;
+        // 校验 1：确保既有 Have 又有 Want
+        function updateTradeValidation() {
+            const haveCount = Object.keys(userTradeData.have).length;
+            const wantCount = Object.keys(userTradeData.want).length;
+            const total = haveCount + wantCount;
             document.getElementById('totalTradeCount').textContent = total;
+
+            const warningEl = document.getElementById('validationWarning');
+            const isValidSelection = haveCount > 0 && wantCount > 0;
+
+            if (haveCount === 0 || wantCount === 0) {
+                warningEl.classList.remove('hidden');
+            } else {
+                warningEl.classList.add('hidden');
+            }
+
+            validateSubmitButton();
+        }
+
+        // 校验 2：16 位数字 Player ID 防呆控制
+        function formatAndValidatePlayerId(input) {
+            // 自动抹除非数字字符
+            let rawDigits = input.value.replace(/\D/g, '').slice(0, 16);
+            
+            // 自动按 4 位加连字符格式化（比如 1234-5678-9012-3456）
+            let formatted = rawDigits.match(/.{1,4}/g)?.join('-') || rawDigits;
+            input.value = formatted;
+
+            const statusEl = document.getElementById('playerIdStatus');
+            const errorEl = document.getElementById('playerIdError');
+
+            statusEl.textContent = `${rawDigits.length}/16`;
+
+            if (rawDigits.length === 16) {
+                statusEl.className = "absolute right-3 top-3.5 text-xs font-bold text-emerald-400";
+                errorEl.classList.add('hidden');
+            } else if (rawDigits.length > 0) {
+                statusEl.className = "absolute right-3 top-3.5 text-xs font-bold text-amber-400";
+                errorEl.textContent = "Player ID must be exactly 16 digits.";
+                errorEl.classList.remove('hidden');
+            } else {
+                statusEl.className = "absolute right-3 top-3.5 text-xs font-bold text-slate-500";
+                errorEl.classList.add('hidden');
+            }
+
+            validateSubmitButton();
+        }
+
+        function validateSubmitButton() {
+            const haveCount = Object.keys(userTradeData.have).length;
+            const wantCount = Object.keys(userTradeData.want).length;
+            const rawDigits = document.getElementById('playerIdInput').value.replace(/\D/g, '');
+            const submitBtn = document.getElementById('submitTradeBtn');
+
+            if (haveCount > 0 && wantCount > 0 && rawDigits.length === 16) {
+                submitBtn.disabled = false;
+                submitBtn.className = "w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-emerald-500 to-indigo-600 text-white font-bold text-sm rounded-xl transition-all shadow-lg hover:brightness-110 cursor-pointer flex items-center justify-center gap-2";
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.className = "w-full sm:w-auto px-6 py-3 bg-slate-700 text-slate-400 font-bold text-sm rounded-xl transition-all cursor-not-allowed flex items-center justify-center gap-2";
+            }
         }
 
         function exportTradeList() {
-            let text = `[Pokémon TCG Pocket Trade List]\n----------------------------------\n🟢 HAVE (Duplicates):\n`;
             const haveIds = Object.keys(userTradeData.have);
-            text += haveIds.length === 0 ? `None\n` : haveIds.join(', ') + `\n`;
-            text += `\n🔴 WANT (Looking for):\n`;
             const wantIds = Object.keys(userTradeData.want);
-            text += wantIds.length === 0 ? `None\n` : wantIds.join(', ') + `\n`;
-            text += `----------------------------------\nTrading equal rarities only!`;
+            const playerId = document.getElementById('playerIdInput').value || 'N/A';
+
+            if (haveIds.length === 0 || wantIds.length === 0) {
+                alert('Please select at least ONE "Have" card and ONE "Want" card before exporting!');
+                return;
+            }
+
+            let text = `[TCG Pocket Trade Request]\n`;
+            text += `🆔 Player ID: ${playerId}\n`;
+            text += `⭐ Rarity Tier: ${currentRarityLabel || 'Strict Equal Tier'}\n`;
+            text += `----------------------------------\n`;
+            text += `🟢 HAVE (Available for Trade):\n${haveIds.join(', ')}\n\n`;
+            text += `🔴 WANT (Looking For):\n${wantIds.join(', ')}\n`;
+            text += `----------------------------------\n`;
+            text += `Equal rarity trades only! Reply or add me in-game!`;
 
             document.getElementById('tradeTextResult').value = text;
             document.getElementById('modal').classList.remove('hidden');
@@ -360,10 +466,10 @@
         function copyTradeText() {
             document.getElementById('tradeTextResult').select();
             document.execCommand('copy');
-            alert('Trade list copied to clipboard!');
+            alert('Trade request copied to clipboard!');
         }
 
-        updateTotalTradeCount();
+        updateTradeValidation();
     </script>
 </body>
 </html>
