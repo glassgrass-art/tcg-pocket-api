@@ -19,7 +19,6 @@
             </div>
             
             <div class="flex items-center gap-4">
-                <!-- 当前选中的稀有度状态提示 -->
                 <div id="currentRarityBadge" class="hidden text-xs bg-indigo-950 border border-indigo-500/50 text-indigo-300 px-3 py-1.5 rounded-lg flex items-center gap-2">
                     <span>Active Rarity: <strong id="activeRarityText" class="text-white font-mono">None</strong></span>
                     <button onclick="resetRarity()" class="text-rose-400 hover:text-rose-300 font-bold ml-1">✖ Reset</button>
@@ -35,7 +34,7 @@
     <!-- 主体区域 -->
     <main class="max-w-7xl mx-auto px-4 py-8">
         
-        <!-- 第一步：稀有度选择卡片网格 (采用官方图标完美组合) -->
+        <!-- 第一步：官方稀有度图标选择区 -->
         <div id="raritySelectorSection" class="space-y-4">
             <div class="flex items-center gap-2 border-b border-slate-700 pb-2">
                 <span class="bg-amber-500 text-slate-950 font-bold text-xs px-2 py-0.5 rounded">Step 1</span>
@@ -105,7 +104,7 @@
                     </div>
                 </button>
 
-                <!-- SR / SAR: 2 Normal Stars -->
+                <!-- SR / SAR: 2 Stars -->
                 <button onclick="selectRarity('SR', '☆☆ Super Rare (SR / SAR)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start gap-1.5 transition-all group">
                     <div class="flex items-center gap-0.5 h-4">
                         <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/star.webp" alt="SR" class="w-3.5 h-3.5 object-contain">
@@ -287,6 +286,7 @@
                                                     ${isWant ? '<span class="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow">Want</span>' : ''}
                                                 </div>
                                             </div>
+                                            <!-- 彻底移除了底部的稀有度标签，只保留编号与卡名 -->
                                             <div class="p-3 flex flex-col flex-grow justify-between">
                                                 <div>
                                                     <div class="text-xs text-amber-400 font-mono mb-1">${card.id}</div>
