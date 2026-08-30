@@ -38,17 +38,8 @@ module.exports = async function handler(req, res) {
         };
       }
 
-      // 修正图片链接：优先使用 card.image 字段，如果没有则通过标准的 jsDelivr 路径拼接
-      let imgUrl = card.image;
-      if (imgUrl) {
-        // 如果 image 字段是相对路径，拼上 jsDelivr 的 dist/images 目录
-        if (!imgUrl.startsWith('http')) {
-          imgUrl = `https://cdn.jsdelivr.net/npm/pokemon-tcg-pocket-database/dist/images/${imgUrl}`;
-        }
-      } else {
-        // 兜底：使用标准编号路径
-        imgUrl = `https://cdn.jsdelivr.net/npm/pokemon-tcg-pocket-database/dist/images/${currentSetId}/${card.number}.webp`;
-      }
+      // 修正：采用 flibustier 仓库公开的标准 cards-by-set 目录进行 CDN 路径拼接
+      const imgUrl = `https://cdn.jsdelivr.net/gh/flibustier/pokemon-tcg-pocket-database@main/cards-by-set/${currentSetId}/${card.number}.webp`;
 
       setsMap[currentSetId].cards.push({
         id: `${currentSetIdUpper}-${card.number}`,
