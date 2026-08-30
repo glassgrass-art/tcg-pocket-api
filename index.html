@@ -35,14 +35,14 @@
     <!-- 主体区域 -->
     <main class="max-w-7xl mx-auto px-4 py-8">
         
-        <!-- 第一步：稀有度选择卡片网格 (已补齐 S 与 SSR) -->
+        <!-- 第一步：稀有度选择卡片网格 (已移除IM，合并SR与SAR) -->
         <div id="raritySelectorSection" class="space-y-4">
             <div class="flex items-center gap-2 border-b border-slate-700 pb-2">
                 <span class="bg-amber-500 text-slate-950 font-bold text-xs px-2 py-0.5 rounded">Step 1</span>
                 <h2 class="text-base font-bold text-slate-200">Select Target Rarity (Equal-Tier Trading)</h2>
             </div>
             
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-11 gap-2.5">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-10 gap-2.5">
                 <button onclick="selectRarity('C', '◇ Common (C)')" class="rarity-card p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 text-left transition-all group">
                     <div class="text-sm font-bold text-slate-300">◇ C</div>
                     <div class="text-[11px] font-semibold text-slate-200 mt-1 truncate">Common</div>
@@ -63,17 +63,9 @@
                     <div class="text-sm font-bold text-emerald-400">★ AR</div>
                     <div class="text-[11px] font-semibold text-slate-200 mt-1 truncate">Art Rare</div>
                 </button>
-                <button onclick="selectRarity('SR', '☆☆ Super Rare (SR)')" class="rarity-card p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 text-left transition-all group">
-                    <div class="text-sm font-bold text-yellow-400">☆☆ SR</div>
-                    <div class="text-[11px] font-semibold text-slate-200 mt-1 truncate">Super Rare</div>
-                </button>
-                <button onclick="selectRarity('SAR', '★★ Special Art Rare (SAR)')" class="rarity-card p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 text-left transition-all group">
-                    <div class="text-sm font-bold text-emerald-400">★★ SAR</div>
-                    <div class="text-[11px] font-semibold text-slate-200 mt-1 truncate">Special Art</div>
-                </button>
-                <button onclick="selectRarity('IM', '👑 Immersive Rare (IM)')" class="rarity-card p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 text-left transition-all group">
-                    <div class="text-sm font-bold text-rose-400">👑 IM</div>
-                    <div class="text-[11px] font-semibold text-slate-200 mt-1 truncate">Immersive</div>
+                <button onclick="selectRarity('SR', '☆☆ Super Rare (SR / SAR)')" class="rarity-card p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 text-left transition-all group">
+                    <div class="text-sm font-bold text-yellow-400">☆☆ SR / SAR</div>
+                    <div class="text-[11px] font-semibold text-slate-200 mt-1 truncate">Super / Special</div>
                 </button>
                 <button onclick="selectRarity('UR', '👑 Crown Rare (UR)')" class="rarity-card p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 text-left transition-all group">
                     <div class="text-sm font-bold text-rose-400">👑 UR</div>
@@ -232,7 +224,11 @@
                                                     <button onclick="toggleStatus('${card.id}', 'have')" class="flex-1 py-1 px-2 rounded text-xs font-semibold transition-colors ${isHave ? 'bg-emerald-600 text-white' : 'bg-slate-700 hover:bg-slate-600 text-slate-300'}">Have</button>
                                                     <button onclick="toggleStatus('${card.id}', 'want')" class="flex-1 py-1 px-2 rounded text-xs font-semibold transition-colors ${isWant ? 'bg-rose-600 text-white' : 'bg-slate-700 hover:bg-slate-600 text-slate-300'}">Want</button>
                                                 </div>
-                                                <div class="mt-1 text-center text-[10px] text-slate-500 font-mono">${card.rarity}</div>
+                                                <!-- 使用后端传过来的官方稀有度图标替换纯文本 -->
+                                                <div class="mt-2 flex items-center justify-center gap-1">
+                                                    <img src="${card.rarityIcon}" alt="${card.normRarity}" class="w-4 h-4 object-contain">
+                                                    <span class="text-[10px] text-slate-400 font-mono font-bold">${card.rarity}</span>
+                                                </div>
                                             </div>
                                         </div>
                                     `;
