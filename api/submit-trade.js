@@ -1,16 +1,38 @@
-import { createClient } from '@supabase/supabase-js';
-
-// 初始化 Supabase 客户端（自动读取 Vercel 环境变量）
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
-
 export default async function handler(req, res) {
   // 跨域与请求方法限制
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Method Not Allowed' });
   }
+
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    return res.status(500).json({
+      success: false,
+      error: 'Missing SUPABASE_URL or SUPABASE_ANON_KEY in Vercel environment variables.'
+    });
+  }
+
+  // 统一封装 Supabase REST API 请求辅助函数
+  const supabaseFetch = async (path, options = {}) => {
+    const url = `${supabaseUrl}/rest/v1${path}`;
+    const headers = {
+      'apikey': supabaseKey,
+      'Authorization': `Bearer ${supabaseKey}`,
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    };
+
+    const response = await fetch(url, { ...options, headers });
+    const text = await response.text();
+
+    if (!response.ok) {
+      throw new Error(`Supabase Error (${response.status}): ${text}`);
+    }
+
+    return text ? JSON.parse(text) : null;
+  };
 
   try {
     const { playerId, rarity, have, want } = req.body;
@@ -27,14 +49,8 @@ export default async function handler(req, res) {
     }
 
     // 2. 搜索数据库中同稀有度、处于 active 状态且非自己的挂单
-    const { data: candidates, error: searchErr } = await supabase
-      .from('trades')
-      .select('*')
-      .eq('rarity', rarity)
-      .eq('status', 'active')
-      .neq('player_id', playerId);
-
-    if (searchErr) throw searchErr;
+    const searchPath = `/trades?select=*&rarity=eq.${encodeURIComponent(rarity)}&status=eq.active&player_id=neq.${encodeURIComponent(playerId)}`;
+    const candidates = await supabaseFetch(searchPath, { method: 'GET' });
 
     let matchedTrade = null;
     let cardAtoB = null;
@@ -44,9 +60,9 @@ export default async function handler(req, res) {
     if (candidates && candidates.length > 0) {
       for (const candidate of candidates) {
         // A(当前用户)的 HAVE 是否包含 B(候选人)的 WANT
-        const commonHaveA_WantB = have.find(card => candidate.want_cards.includes(card));
+        const commonHaveA_WantB = have.find(card => candidate.want_cards?.includes(card));
         // B(候选人)的 HAVE 是否包含 A(当前用户)的 WANT
-        const commonHaveB_WantA = candidate.have_cards.find(card => want.includes(card));
+        const commonHaveB_WantA = candidate.have_cards?.find(card => want.includes(card));
 
         if (commonHaveA_WantB && commonHaveB_WantA) {
           matchedTrade = candidate;
@@ -60,9 +76,10 @@ export default async function handler(req, res) {
     // 4. 场景 A：命中匹配，更新双方订单状态为 matched
     if (matchedTrade) {
       // 写入当前用户的匹配完成记录
-      const { data: newTrade, error: insertErr } = await supabase
-        .from('trades')
-        .insert([{
+      const newTrades = await supabaseFetch('/trades', {
+        method: 'POST',
+        headers: { 'Prefer': 'return=representation' },
+        body: JSON.stringify({
           player_id: playerId,
           rarity,
           have_cards: have,
@@ -71,24 +88,21 @@ export default async function handler(req, res) {
           matched_with: matchedTrade.id,
           matched_card_have: cardAtoB,
           matched_card_want: cardBtoA
-        }])
-        .select()
-        .single();
+        })
+      });
 
-      if (insertErr) throw insertErr;
+      const newTrade = newTrades[0];
 
       // 更新对方挂单状态为 matched
-      const { error: updateErr } = await supabase
-        .from('trades')
-        .update({
+      await supabaseFetch(`/trades?id=eq.${matchedTrade.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
           status: 'matched',
           matched_with: newTrade.id,
           matched_card_have: cardBtoA,
           matched_card_want: cardAtoB
         })
-        .eq('id', matchedTrade.id);
-
-      if (updateErr) throw updateErr;
+      });
 
       return res.status(200).json({
         success: true,
@@ -101,19 +115,19 @@ export default async function handler(req, res) {
     }
 
     // 5. 场景 B：未命中匹配，将当前订单作为 active 写入数据库等待匹配
-    const { data: pendingTrade, error: pendingErr } = await supabase
-      .from('trades')
-      .insert([{
+    const pendingTrades = await supabaseFetch('/trades', {
+      method: 'POST',
+      headers: { 'Prefer': 'return=representation' },
+      body: JSON.stringify({
         player_id: playerId,
         rarity,
         have_cards: have,
         want_cards: want,
         status: 'active'
-      }])
-      .select()
-      .single();
+      })
+    });
 
-    if (pendingErr) throw pendingErr;
+    const pendingTrade = pendingTrades[0];
 
     return res.status(200).json({
       success: true,
@@ -123,6 +137,6 @@ export default async function handler(req, res) {
     });
 
   } catch (err) {
-    return res.status(500).json({ success: false, error: err.message });
+    return res.status(500).json({ success: false, error: err.message || String(err) });
   }
 }
