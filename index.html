@@ -24,13 +24,10 @@
                     <button onclick="resetRarity()" class="text-rose-400 hover:text-rose-300 font-bold ml-1">✖ Reset</button>
                 </div>
 
-                <button onclick="openMessageCenter()" class="relative bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-2 rounded-lg text-xs font-semibold transition-colors flex items-center gap-2 border border-slate-600">
-                    <span>✉️ 站内信</span>
-                    <span id="unreadDot" class="w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span>
-                </button>
-
-                <button onclick="exportTradeList()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition-colors shadow flex items-center gap-2">
-                    📋 Export Trade List (<span id="totalTradeCount">0</span>)
+                <!-- 已将原来的复制框导出按钮替换为站内信/匹配查询按钮 -->
+                <button onclick="openMessageCenter()" class="relative bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-xs font-semibold transition-colors shadow flex items-center gap-2 border border-indigo-400/30">
+                    <span>✉️ 站内信 / 匹配查询</span>
+                    <span id="unreadDot" class="w-2 h-2 bg-rose-400 rounded-full animate-pulse"></span>
                 </button>
             </div>
         </div>
@@ -39,13 +36,13 @@
     <!-- 主体区域 -->
     <main class="max-w-7xl mx-auto px-4 py-8 space-y-8">
         
-        <!-- 0. 视频教程组件 -->
+        <!-- 视频教程组件 -->
         <div class="bg-slate-800/80 border border-amber-500/30 rounded-2xl p-4 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-3">
                 <div class="bg-amber-500/20 p-2.5 rounded-xl text-amber-400 text-xl font-bold">🎬</div>
                 <div>
                     <h3 class="text-sm font-bold text-slate-100">Quick Video Guide (5s)</h3>
-                    <p class="text-xs text-slate-400">Learn how to select equal-rarity cards and generate trade ID in seconds.</p>
+                    <p class="text-xs text-slate-400">Learn how to select equal-rarity cards and submit trade online in seconds.</p>
                 </div>
             </div>
             <div class="w-full md:w-80 aspect-video bg-slate-950 rounded-xl overflow-hidden border border-slate-700 flex items-center justify-center relative group">
@@ -166,14 +163,14 @@
             <div id="accordionContainer" class="space-y-4"></div>
         </div>
 
-        <!-- Step 3：16位Player ID防呆与提交匹配 -->
+        <!-- Step 3：16位Player ID与提交匹配 -->
         <div id="step3Section" class="hidden bg-slate-800/90 border border-slate-700 rounded-2xl p-6 shadow-2xl space-y-4">
             <div class="flex items-center gap-2 border-b border-slate-700 pb-3">
                 <span class="bg-emerald-500 text-slate-950 font-bold text-xs px-2 py-0.5 rounded">Step 3</span>
                 <h2 class="text-base font-bold text-slate-100">Enter Your Game Player ID (16 Digits)</h2>
             </div>
 
-            <p class="text-xs text-slate-400">Provide your 16-digit In-Game ID (e.g. 1234-5678-9012-3456) so matched trade partners can add you.</p>
+            <p class="text-xs text-slate-400">Provide your 16-digit In-Game ID (e.g. 1234-5678-9012-3456) to submit your trade request directly to the system.</p>
 
             <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                 <div class="relative w-full sm:w-96">
@@ -194,7 +191,7 @@
                     onclick="submitTradeMatch()" 
                     class="w-full sm:w-auto px-6 py-3 bg-slate-700 text-slate-400 font-bold text-sm rounded-xl transition-all cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                    🚀 Submit & Match Online
+                    🚀 Submit & Save to Database
                 </button>
             </div>
             <div id="playerIdError" class="text-xs text-rose-400 font-mono hidden"></div>
@@ -202,34 +199,13 @@
 
     </main>
 
-    <!-- 导出弹窗 -->
-    <div id="modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-            <h3 class="text-lg font-bold text-slate-100 flex justify-between items-center">
-                <span>Standard Rarity Trade List</span>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-white text-sm">✕</button>
-            </h3>
-            <textarea id="tradeTextResult" class="w-full h-48 bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-slate-300 font-mono focus:outline-none" readonly></textarea>
-            
-            <div class="flex flex-col sm:flex-row justify-between gap-3">
-                <button onclick="openMessageCenterWithTrade()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg text-sm flex items-center justify-center gap-1.5">
-                    ✉️ Send Direct Message
-                </button>
-                <div class="flex gap-2">
-                    <button onclick="closeModal()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-sm">Close</button>
-                    <button onclick="copyTradeText()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold rounded-lg text-sm">Copy Trade Post</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- 站内信/消息中心弹窗 -->
     <div id="messageModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-2xl w-full h-[550px] shadow-2xl flex flex-col overflow-hidden">
             <div class="px-6 py-4 bg-slate-850 border-b border-slate-700 flex justify-between items-center">
                 <div class="flex items-center gap-2">
                     <span class="text-lg">✉️</span>
-                    <h3 class="text-base font-bold text-slate-100">Station Direct Messages</h3>
+                    <h3 class="text-base font-bold text-slate-100">Station Direct Messages & Match Status</h3>
                 </div>
                 <button onclick="closeMessageCenter()" class="text-slate-400 hover:text-white font-bold text-sm">✕ Close</button>
             </div>
@@ -241,14 +217,14 @@
                             <span>SYSTEM</span>
                             <span>Just now</span>
                         </div>
-                        <p>Welcome to Station Messages! You can send and receive trade offers here directly using Player IDs.</p>
+                        <p>Welcome! Submitted trade orders are automatically matched in the database. You can directly communicate with matched trade partners here.</p>
                     </div>
                 </div>
 
                 <div class="pt-3 border-t border-slate-700/80 space-y-3">
                     <div class="flex gap-2">
                         <input type="text" id="targetPlayerId" placeholder="Target Player ID (16 Digits)" class="w-1/2 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-indigo-500">
-                        <input type="text" id="messageContent" placeholder="Write a message or trade offer..." class="w-1/2 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                        <input type="text" id="messageContent" placeholder="Write a message..." class="w-1/2 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
                     </div>
                     <button onclick="sendMessage()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg text-xs transition-colors flex items-center justify-center gap-2">
                         📤 Send Message
@@ -263,9 +239,9 @@
         let currentRarity = '';
         let currentRarityLabel = '';
 
-        // 选择稀有度：自动清理上一次不同稀有度的选择记录
+        // 切换稀有度时清空已选的卡牌数据
         function selectRarity(rarityKey, rarityLabel) {
-            clearTradeSessionData(); // 修补核心：切换稀有度时立即清空数据
+            clearSelectedCardsOnly();
 
             currentRarity = rarityKey;
             currentRarityLabel = rarityLabel;
@@ -280,20 +256,18 @@
             fetchCardsTree(rarityKey);
         }
 
-        // 清空本地选卡状态
-        function clearTradeSessionData() {
+        // 仅清除选卡，保留 Player ID
+        function clearSelectedCardsOnly() {
             userTradeData = { have: {}, want: {} };
             localStorage.removeItem('tcg_trade_data');
             updateTradeValidation();
         }
 
-        // 交易提交或导出完成后的完全重置
-        function fullResetAfterSubmit() {
-            clearTradeSessionData();
-            const input = document.getElementById('playerIdInput');
-            if (input) input.value = '';
-            formatAndValidatePlayerId(input || { value: '' });
-
+        // 提交数据库成功后的处理：清空已选卡牌，但保持输入框中的 Player ID
+        function postSubmitReset() {
+            clearSelectedCardsOnly();
+            
+            // 重新拉取并更新界面视图（清空已选样式）
             if (currentRarity) {
                 fetchCardsTree(currentRarity);
             }
@@ -302,7 +276,7 @@
         function resetRarity() {
             currentRarity = '';
             currentRarityLabel = '';
-            clearTradeSessionData();
+            clearSelectedCardsOnly();
 
             document.getElementById('currentRarityBadge').classList.add('hidden');
             document.getElementById('treeContainerSection').classList.add('hidden');
@@ -435,11 +409,8 @@
         function updateTradeValidation() {
             const haveCount = Object.keys(userTradeData.have).length;
             const wantCount = Object.keys(userTradeData.want).length;
-            const total = haveCount + wantCount;
-            document.getElementById('totalTradeCount').textContent = total;
 
             const warningEl = document.getElementById('validationWarning');
-
             if (haveCount === 0 || wantCount === 0) {
                 warningEl.classList.remove('hidden');
             } else {
@@ -491,7 +462,7 @@
             }
         }
 
-        // 提交交易至后端接口并在完成后自动重置
+        // 直接提交至 Supabase 数据库接口
         async function submitTradeMatch() {
             const haveIds = Object.keys(userTradeData.have);
             const wantIds = Object.keys(userTradeData.want);
@@ -515,54 +486,15 @@
                 if (data.matched) {
                     alert(`🎉 Instant Match Found!\nPartner ID: ${data.partnerPlayerId}\nYou Give: ${data.youGive}\nYou Get: ${data.youGet}`);
                 } else {
-                    alert(`✅ Trade request submitted successfully!\nTrade ID: ${data.tradeId}`);
+                    alert(`✅ Trade request saved to database successfully!\nTrade Order ID: ${data.tradeId}`);
                 }
 
-                // 提交完成后重置状态
-                fullResetAfterSubmit();
+                // 提交完成后只清理选卡，保留 ID
+                postSubmitReset();
 
             } catch (err) {
                 alert(`Submit failed: ${err.message}`);
             }
-        }
-
-        function exportTradeList() {
-            const haveIds = Object.keys(userTradeData.have);
-            const wantIds = Object.keys(userTradeData.want);
-            const playerId = document.getElementById('playerIdInput').value || 'N/A';
-
-            if (haveIds.length === 0 || wantIds.length === 0) {
-                alert('Please select at least ONE "Have" card and ONE "Want" card before exporting!');
-                return;
-            }
-
-            let text = `[TCG Pocket Trade Request]\n`;
-            text += `🆔 Player ID: ${playerId}\n`;
-            text += `⭐ Rarity Tier: ${currentRarityLabel || 'Strict Equal Tier'}\n`;
-            text += `----------------------------------\n`;
-            text += `🟢 HAVE (Available for Trade):\n${haveIds.join(', ')}\n\n`;
-            text += `🔴 WANT (Looking For):\n${wantIds.join(', ')}\n`;
-            text += `----------------------------------\n`;
-            text += `Equal rarity trades only! Reply or add me in-game!`;
-
-            document.getElementById('tradeTextResult').value = text;
-            document.getElementById('modal').classList.remove('hidden');
-        }
-
-        function closeModal() { document.getElementById('modal').classList.add('hidden'); }
-        function copyTradeText() {
-            const textArea = document.getElementById('tradeTextResult');
-            textArea.select();
-            navigator.clipboard.writeText(textArea.value).then(() => {
-                alert('Trade request copied to clipboard!');
-                fullResetAfterSubmit(); // 导出/复制后清理
-                closeModal();
-            }).catch(() => {
-                document.execCommand('copy');
-                alert('Trade request copied to clipboard!');
-                fullResetAfterSubmit(); // 导出/复制后清理
-                closeModal();
-            });
         }
 
         function openMessageCenter() {
@@ -572,13 +504,6 @@
 
         function closeMessageCenter() {
             document.getElementById('messageModal').classList.add('hidden');
-        }
-
-        function openMessageCenterWithTrade() {
-            const text = document.getElementById('tradeTextResult').value;
-            closeModal();
-            openMessageCenter();
-            document.getElementById('messageContent').value = text;
         }
 
         function sendMessage() {
