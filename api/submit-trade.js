@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ success: false, error: 'Method Not Allowed' });
   }
 
-  let supabaseUrl = process.env.SUPABASE_URL;
+  let supabaseUrl = process.env.SUPABASE_URL || '';
   const supabaseKey = process.env.SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
@@ -25,16 +25,23 @@ export default async function handler(req, res) {
     return res.status(500).json({ success: false, error: envErr });
   }
 
-  // 清除 URL 结尾可能存在的多余斜杠 /，防止双斜杠导致 404
-  supabaseUrl = supabaseUrl.replace(/\/+$/, '');
+  // 1. 严格清洗域名根路径，防止重复拼上 /rest/v1
+  let cleanBaseUrl = supabaseUrl.trim().replace(/\/+$/, '');
+  cleanBaseUrl = cleanBaseUrl.replace(/\/rest\/v1\/?$/, ''); // 如果配置里写了 /rest/v1，先剥离掉
 
   // Supabase REST API 请求辅助函数
   const supabaseFetch = async (path, options = {}) => {
-    const url = `${supabaseUrl}/rest/v1${path}`;
+    // 确保 path 格式正确
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    const url = `${cleanBaseUrl}/rest/v1${cleanPath}`;
+
     const headers = {
       'apikey': supabaseKey,
       'Authorization': `Bearer ${supabaseKey}`,
       'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Content-Profile': 'public',
+      'Accept-Profile': 'public',
       ...(options.headers || {})
     };
 
@@ -42,6 +49,7 @@ export default async function handler(req, res) {
     const text = await response.text();
 
     if (!response.ok) {
+      console.error(`[Supabase Fetch Error] Target URL: ${url} | Status: ${response.status}`);
       throw new Error(`Supabase API (${response.status}): ${text}`);
     }
 
@@ -51,7 +59,7 @@ export default async function handler(req, res) {
   try {
     const { playerId, rarity, have, want } = req.body || {};
 
-    // 1. 数据合法性校验
+    // 2. 数据合法性校验
     if (!playerId || String(playerId).replace(/\D/g, '').length !== 16) {
       return res.status(400).json({ success: false, error: 'Invalid 16-digit Player ID format' });
     }
@@ -62,7 +70,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ success: false, error: 'Must select at least ONE Have card and ONE Want card' });
     }
 
-    // 2. 查询活跃的待匹配条目
+    // 3. 查询活跃的待匹配条目
     const searchPath = `/trades?select=*&rarity=eq.${encodeURIComponent(rarity)}&status=eq.active&player_id=neq.${encodeURIComponent(playerId)}`;
     const candidates = await supabaseFetch(searchPath, { method: 'GET' });
 
@@ -70,7 +78,7 @@ export default async function handler(req, res) {
     let cardAtoB = null;
     let cardBtoA = null;
 
-    // 3. 交叉匹配算法
+    // 4. 交叉匹配算法
     if (candidates && candidates.length > 0) {
       for (const candidate of candidates) {
         const candidateHave = candidate.have_cards || candidate.have || [];
@@ -88,7 +96,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // 4. 场景 A：即时命中匹配
+    // 5. 场景 A：即时命中匹配
     if (matchedTrade) {
       const newTrades = await supabaseFetch('/trades', {
         method: 'POST',
@@ -129,7 +137,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // 5. 场景 B：存入挂单池等待匹配
+    // 6. 场景 B：存入挂单池等待匹配
     const pendingTrades = await supabaseFetch('/trades', {
       method: 'POST',
       headers: { 'Prefer': 'return=representation' },
