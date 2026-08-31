@@ -20,10 +20,9 @@ export default async function handler(req, res) {
   const supabaseKey = process.env.SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
-    return res.status(500).json({
-      success: false,
-      error: 'Missing SUPABASE_URL or SUPABASE_ANON_KEY in Vercel environment variables.'
-    });
+    const envErr = 'Missing SUPABASE_URL or SUPABASE_ANON_KEY in Vercel environment variables.';
+    console.error(envErr);
+    return res.status(500).json({ success: false, error: envErr });
   }
 
   // Supabase REST API 请求辅助函数
@@ -152,6 +151,7 @@ export default async function handler(req, res) {
     });
 
   } catch (err) {
+    console.error('Submit Trade Error:', err.message || err);
     return res.status(500).json({ success: false, error: err.message || String(err) });
   }
 }
