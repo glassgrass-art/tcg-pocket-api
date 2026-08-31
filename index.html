@@ -448,11 +448,12 @@
             }
         }
 
-        // 提交交易请求并进行 JSON 防错拦截
+        // 提交交易请求并完美解析后端返回的异常信息
         async function submitTradeMatch() {
             const haveIds = Object.keys(userTradeData.have);
             const wantIds = Object.keys(userTradeData.want);
-            const playerId = document.getElementById('playerIdInput').value;
+            const rawPlayerId = document.getElementById('playerIdInput').value;
+            const playerId = rawPlayerId.replace(/\D/g, ''); // 统一转为纯数字字符串
 
             try {
                 const res = await fetch('/api/submit-trade', {
@@ -466,14 +467,20 @@
                     })
                 });
 
-                // 防范 500 HTML 页面导致的 JSON 解析报错
-                if (!res.ok) {
-                    const errHtml = await res.text();
-                    throw new Error(`Server returned status ${res.status}. Check Vercel Supabase configuration.`);
+                const contentType = res.headers.get('content-type') || '';
+                
+                // 1. 若返回的是 HTML 报错页面（通常发生在 Vercel 抛出 500 时）
+                if (!contentType.includes('application/json')) {
+                    const errText = await res.text();
+                    throw new Error(`Server status ${res.status}: ${errText.slice(0, 150)}...`);
                 }
 
+                // 2. 解析标准的 JSON 响应
                 const data = await res.json();
-                if (!data.success) throw new Error(data.error);
+
+                if (!res.ok || !data.success) {
+                    throw new Error(data.error || `Server error with status ${res.status}`);
+                }
 
                 if (data.matched) {
                     addNotification(`🎉 Instant Match Found! Partner ID: ${data.partnerPlayerId} | You Give: ${data.youGive} | You Get: ${data.youGet}`);
