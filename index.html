@@ -24,9 +24,9 @@
                     <button onclick="resetRarity()" class="text-rose-400 hover:text-rose-300 font-bold ml-1">✖ Reset</button>
                 </div>
 
-                <!-- 已将原来的复制框导出按钮替换为站内信/匹配查询按钮 -->
-                <button onclick="openMessageCenter()" class="relative bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-xs font-semibold transition-colors shadow flex items-center gap-2 border border-indigo-400/30">
-                    <span>✉️ 站内信 / 匹配查询</span>
+                <!-- 纯通知中心按钮 -->
+                <button onclick="openNotificationCenter()" class="relative bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-xs font-semibold transition-colors shadow flex items-center gap-2 border border-indigo-400/30">
+                    <span>✉️ 匹配通知</span>
                     <span id="unreadDot" class="w-2 h-2 bg-rose-400 rounded-full animate-pulse"></span>
                 </button>
             </div>
@@ -170,7 +170,7 @@
                 <h2 class="text-base font-bold text-slate-100">Enter Your Game Player ID (16 Digits)</h2>
             </div>
 
-            <p class="text-xs text-slate-400">Provide your 16-digit In-Game ID (e.g. 1234-5678-9012-3456) to submit your trade request directly to the system.</p>
+            <p class="text-xs text-slate-400">Provide your 16-digit In-Game ID (e.g. 1234-5678-9012-3456) to submit your trade request directly to the system database.</p>
 
             <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                 <div class="relative w-full sm:w-96">
@@ -191,7 +191,7 @@
                     onclick="submitTradeMatch()" 
                     class="w-full sm:w-auto px-6 py-3 bg-slate-700 text-slate-400 font-bold text-sm rounded-xl transition-all cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                    🚀 Submit & Save to Database
+                    🚀 Submit to Database
                 </button>
             </div>
             <div id="playerIdError" class="text-xs text-rose-400 font-mono hidden"></div>
@@ -199,36 +199,26 @@
 
     </main>
 
-    <!-- 站内信/消息中心弹窗 -->
-    <div id="messageModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-2xl w-full h-[550px] shadow-2xl flex flex-col overflow-hidden">
+    <!-- 纯系统通知中心弹窗（无发送功能） -->
+    <div id="notificationModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-xl w-full h-[450px] shadow-2xl flex flex-col overflow-hidden">
             <div class="px-6 py-4 bg-slate-850 border-b border-slate-700 flex justify-between items-center">
                 <div class="flex items-center gap-2">
-                    <span class="text-lg">✉️</span>
-                    <h3 class="text-base font-bold text-slate-100">Station Direct Messages & Match Status</h3>
+                    <span class="text-lg">🔔</span>
+                    <h3 class="text-base font-bold text-slate-100">System Notifications & Match Alerts</h3>
                 </div>
-                <button onclick="closeMessageCenter()" class="text-slate-400 hover:text-white font-bold text-sm">✕ Close</button>
+                <button onclick="closeNotificationCenter()" class="text-slate-400 hover:text-white font-bold text-sm">✕ Close</button>
             </div>
 
-            <div class="flex-1 p-6 flex flex-col justify-between space-y-4 overflow-y-auto">
-                <div id="messageHistory" class="space-y-3 overflow-y-auto pr-2 flex-1">
-                    <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/60 text-xs text-slate-300">
-                        <div class="flex justify-between font-mono text-[10px] text-slate-500 mb-1">
-                            <span>SYSTEM</span>
-                            <span>Just now</span>
+            <div class="flex-1 p-6 overflow-y-auto">
+                <div id="notificationHistory" class="space-y-3">
+                    <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700 text-xs text-slate-300">
+                        <div class="flex justify-between font-mono text-[10px] text-slate-500 mb-1.5">
+                            <span>SYSTEM ALERT</span>
+                            <span>Automatic System</span>
                         </div>
-                        <p>Welcome! Submitted trade orders are automatically matched in the database. You can directly communicate with matched trade partners here.</p>
+                        <p class="leading-relaxed">Trade submissions are strictly validated against equal rarities. When a match is found in the database, notifications will appear here with the partner's Player ID.</p>
                     </div>
-                </div>
-
-                <div class="pt-3 border-t border-slate-700/80 space-y-3">
-                    <div class="flex gap-2">
-                        <input type="text" id="targetPlayerId" placeholder="Target Player ID (16 Digits)" class="w-1/2 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-indigo-500">
-                        <input type="text" id="messageContent" placeholder="Write a message..." class="w-1/2 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-                    </div>
-                    <button onclick="sendMessage()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg text-xs transition-colors flex items-center justify-center gap-2">
-                        📤 Send Message
-                    </button>
                 </div>
             </div>
         </div>
@@ -239,7 +229,7 @@
         let currentRarity = '';
         let currentRarityLabel = '';
 
-        // 切换稀有度时清空已选的卡牌数据
+        // 切换稀有度：只清空勾选卡牌，保留可能输入的 Player ID
         function selectRarity(rarityKey, rarityLabel) {
             clearSelectedCardsOnly();
 
@@ -256,18 +246,14 @@
             fetchCardsTree(rarityKey);
         }
 
-        // 仅清除选卡，保留 Player ID
         function clearSelectedCardsOnly() {
             userTradeData = { have: {}, want: {} };
             localStorage.removeItem('tcg_trade_data');
             updateTradeValidation();
         }
 
-        // 提交数据库成功后的处理：清空已选卡牌，但保持输入框中的 Player ID
         function postSubmitReset() {
             clearSelectedCardsOnly();
-            
-            // 重新拉取并更新界面视图（清空已选样式）
             if (currentRarity) {
                 fetchCardsTree(currentRarity);
             }
@@ -462,7 +448,7 @@
             }
         }
 
-        // 直接提交至 Supabase 数据库接口
+        // 提交交易请求并进行 JSON 防错拦截
         async function submitTradeMatch() {
             const haveIds = Object.keys(userTradeData.have);
             const wantIds = Object.keys(userTradeData.want);
@@ -479,17 +465,24 @@
                         want: wantIds
                     })
                 });
-                const data = await res.json();
 
+                // 防范 500 HTML 页面导致的 JSON 解析报错
+                if (!res.ok) {
+                    const errHtml = await res.text();
+                    throw new Error(`Server returned status ${res.status}. Check Vercel Supabase configuration.`);
+                }
+
+                const data = await res.json();
                 if (!data.success) throw new Error(data.error);
 
                 if (data.matched) {
+                    addNotification(`🎉 Instant Match Found! Partner ID: ${data.partnerPlayerId} | You Give: ${data.youGive} | You Get: ${data.youGet}`);
                     alert(`🎉 Instant Match Found!\nPartner ID: ${data.partnerPlayerId}\nYou Give: ${data.youGive}\nYou Get: ${data.youGet}`);
                 } else {
+                    addNotification(`✅ Trade request saved! Order ID: ${data.tradeId}`);
                     alert(`✅ Trade request saved to database successfully!\nTrade Order ID: ${data.tradeId}`);
                 }
 
-                // 提交完成后只清理选卡，保留 ID
                 postSubmitReset();
 
             } catch (err) {
@@ -497,39 +490,28 @@
             }
         }
 
-        function openMessageCenter() {
-            document.getElementById('messageModal').classList.remove('hidden');
+        function openNotificationCenter() {
+            document.getElementById('notificationModal').classList.remove('hidden');
             document.getElementById('unreadDot').classList.add('hidden');
         }
 
-        function closeMessageCenter() {
-            document.getElementById('messageModal').classList.add('hidden');
+        function closeNotificationCenter() {
+            document.getElementById('notificationModal').classList.add('hidden');
         }
 
-        function sendMessage() {
-            const targetId = document.getElementById('targetPlayerId').value.trim();
-            const content = document.getElementById('messageContent').value.trim();
-
-            if (!targetId || !content) {
-                alert('Please provide both Target Player ID and Message content!');
-                return;
-            }
-
-            const history = document.getElementById('messageHistory');
-            const msgEl = document.createElement('div');
-            msgEl.className = "bg-indigo-950/80 border border-indigo-500/40 p-3 rounded-xl text-xs text-indigo-100";
-            msgEl.innerHTML = `
+        function addNotification(text) {
+            const history = document.getElementById('notificationHistory');
+            const item = document.createElement('div');
+            item.className = "bg-indigo-950/80 border border-indigo-500/40 p-3 rounded-xl text-xs text-indigo-100";
+            item.innerHTML = `
                 <div class="flex justify-between font-mono text-[10px] text-indigo-300 mb-1">
-                    <span>TO: ${targetId}</span>
+                    <span>SYSTEM NOTIFICATION</span>
                     <span>Just now</span>
                 </div>
-                <p class="whitespace-pre-wrap">${content}</p>
+                <p>${text}</p>
             `;
-            history.appendChild(msgEl);
-            history.scrollTop = history.scrollHeight;
-
-            document.getElementById('messageContent').value = '';
-            alert('Message sent successfully!');
+            history.prepend(item);
+            document.getElementById('unreadDot').classList.remove('hidden');
         }
 
         updateTradeValidation();
