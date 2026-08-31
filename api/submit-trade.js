@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ success: false, error: 'Method Not Allowed' });
   }
 
-  const supabaseUrl = process.env.SUPABASE_URL;
+  let supabaseUrl = process.env.SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
@@ -24,6 +24,9 @@ export default async function handler(req, res) {
     console.error(envErr);
     return res.status(500).json({ success: false, error: envErr });
   }
+
+  // 清除 URL 结尾可能存在的多余斜杠 /，防止双斜杠导致 404
+  supabaseUrl = supabaseUrl.replace(/\/+$/, '');
 
   // Supabase REST API 请求辅助函数
   const supabaseFetch = async (path, options = {}) => {
