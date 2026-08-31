@@ -1,5 +1,17 @@
 export default async function handler(req, res) {
-  // 跨域与请求方法限制
+  // 设置 CORS 响应头
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+  );
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Method Not Allowed' });
   }
@@ -14,7 +26,7 @@ export default async function handler(req, res) {
     });
   }
 
-  // 统一封装 Supabase REST API 请求辅助函数
+  // Supabase REST API 请求辅助函数
   const supabaseFetch = async (path, options = {}) => {
     const url = `${supabaseUrl}/rest/v1${path}`;
     const headers = {
@@ -28,17 +40,17 @@ export default async function handler(req, res) {
     const text = await response.text();
 
     if (!response.ok) {
-      throw new Error(`Supabase Error (${response.status}): ${text}`);
+      throw new Error(`Supabase API (${response.status}): ${text}`);
     }
 
     return text ? JSON.parse(text) : null;
   };
 
   try {
-    const { playerId, rarity, have, want } = req.body;
+    const { playerId, rarity, have, want } = req.body || {};
 
-    // 1. 数据合法性防呆校验
-    if (!playerId || playerId.replace(/\D/g, '').length !== 16) {
+    // 1. 数据合法性校验
+    if (!playerId || String(playerId).replace(/\D/g, '').length !== 16) {
       return res.status(400).json({ success: false, error: 'Invalid 16-digit Player ID format' });
     }
     if (!rarity || !have || !want || !Array.isArray(have) || !Array.isArray(want)) {
@@ -48,7 +60,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ success: false, error: 'Must select at least ONE Have card and ONE Want card' });
     }
 
-    // 2. 搜索数据库中同稀有度、处于 active 状态且非自己的挂单
+    // 2. 查询活跃的待匹配条目
     const searchPath = `/trades?select=*&rarity=eq.${encodeURIComponent(rarity)}&status=eq.active&player_id=neq.${encodeURIComponent(playerId)}`;
     const candidates = await supabaseFetch(searchPath, { method: 'GET' });
 
@@ -56,26 +68,26 @@ export default async function handler(req, res) {
     let cardAtoB = null;
     let cardBtoA = null;
 
-    // 3. 交叉匹配算法：寻找是否有双向匹配的候选人
+    // 3. 交叉匹配算法
     if (candidates && candidates.length > 0) {
       for (const candidate of candidates) {
-        // A(当前用户)的 HAVE 是否包含 B(候选人)的 WANT
-        const commonHaveA_WantB = have.find(card => candidate.want_cards?.includes(card));
-        // B(候选人)的 HAVE 是否包含 A(当前用户)的 WANT
-        const commonHaveB_WantA = candidate.have_cards?.find(card => want.includes(card));
+        const candidateHave = candidate.have_cards || candidate.have || [];
+        const candidateWant = candidate.want_cards || candidate.want || [];
+
+        const commonHaveA_WantB = have.find(card => candidateWant.includes(card));
+        const commonHaveB_WantA = candidateHave.find(card => want.includes(card));
 
         if (commonHaveA_WantB && commonHaveB_WantA) {
           matchedTrade = candidate;
-          cardAtoB = commonHaveA_WantB; // A 给 B 的卡
-          cardBtoA = commonHaveB_WantA; // B 给 A 的卡
+          cardAtoB = commonHaveA_WantB;
+          cardBtoA = commonHaveB_WantA;
           break;
         }
       }
     }
 
-    // 4. 场景 A：命中匹配，更新双方订单状态为 matched
+    // 4. 场景 A：即时命中匹配
     if (matchedTrade) {
-      // 写入当前用户的匹配完成记录
       const newTrades = await supabaseFetch('/trades', {
         method: 'POST',
         headers: { 'Prefer': 'return=representation' },
@@ -84,6 +96,8 @@ export default async function handler(req, res) {
           rarity,
           have_cards: have,
           want_cards: want,
+          have: have,
+          want: want,
           status: 'matched',
           matched_with: matchedTrade.id,
           matched_card_have: cardAtoB,
@@ -91,14 +105,13 @@ export default async function handler(req, res) {
         })
       });
 
-      const newTrade = newTrades[0];
+      const newTrade = newTrades ? newTrades[0] : null;
 
-      // 更新对方挂单状态为 matched
       await supabaseFetch(`/trades?id=eq.${matchedTrade.id}`, {
         method: 'PATCH',
         body: JSON.stringify({
           status: 'matched',
-          matched_with: newTrade.id,
+          matched_with: newTrade ? newTrade.id : null,
           matched_card_have: cardBtoA,
           matched_card_want: cardAtoB
         })
@@ -114,7 +127,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // 5. 场景 B：未命中匹配，将当前订单作为 active 写入数据库等待匹配
+    // 5. 场景 B：存入挂单池等待匹配
     const pendingTrades = await supabaseFetch('/trades', {
       method: 'POST',
       headers: { 'Prefer': 'return=representation' },
@@ -123,16 +136,18 @@ export default async function handler(req, res) {
         rarity,
         have_cards: have,
         want_cards: want,
+        have: have,
+        want: want,
         status: 'active'
       })
     });
 
-    const pendingTrade = pendingTrades[0];
+    const pendingTrade = pendingTrades ? pendingTrades[0] : {};
 
     return res.status(200).json({
       success: true,
       matched: false,
-      tradeId: pendingTrade.id,
+      tradeId: pendingTrade.id || 'N/A',
       message: 'Added to trade pool! Waiting for a matching trader.'
     });
 
