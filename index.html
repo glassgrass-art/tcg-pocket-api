@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,10 +19,9 @@
             </div>
             
             <div class="flex flex-wrap items-center gap-3">
-                <!-- 多语言下拉框 -->
+                <!-- 多语言下拉框（无简体中文） -->
                 <select id="langSelect" onchange="changeLanguage(this.value)" class="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-500">
                     <option value="en">English</option>
-                    <option value="zh-CN">简体中文</option>
                     <option value="zh-TW">繁體中文</option>
                     <option value="ja">日本語</option>
                     <option value="ko">한국어</option>
@@ -244,39 +243,29 @@
     </div>
 
     <script>
-        // 官方扩展包中文/英文名称映射表
-        const expansionNameMap = {
-            'A1': { 'zh-CN': '最强的基因', 'en': 'Genetic Apex' },
-            'A1a': { 'zh-CN': '幻之岛', 'en': 'Mythical Island' },
-            'A2': { 'zh-CN': '时空之双壁', 'en': 'Space-Time Smackdown' },
-            'A2a': { 'zh-CN': '超克之光', 'en': 'Triumphant Light' },
-            'B1': { 'zh-CN': '双璧的斗士', 'en': 'Dual Champions' },
-            'B2': { 'zh-CN': '黑白双龙', 'en': 'Black & White Legends' },
-            'B2A': { 'zh-CN': '黑白双龙 补充包 A', 'en': 'Black & White Pack A' },
-            'B2B': { 'zh-CN': '黑白双龙 补充包 B', 'en': 'Black & White Pack B' },
-            'B3': { 'zh-CN': '超级进化', 'en': 'Mega Evolution' },
-            'B3A': { 'zh-CN': '超级进化 补充包 A', 'en': 'Mega Evolution Pack A' },
-            'B3B': { 'zh-CN': '超级进化 补充包 B', 'en': 'Mega Evolution Pack B' },
-            'B4': { 'zh-CN': '星宿与神话', 'en': 'Celestial Myths' },
-            'B4A': { 'zh-CN': '星宿与神话 补充包 A', 'en': 'Celestial Myths Pack A' },
-            'PROMO-A': { 'zh-CN': '活动宣传卡包 A', 'en': 'Promo Pack A' },
-            'PROMO-B': { 'zh-CN': '活动宣传卡包 B', 'en': 'Promo Pack B' }
+        // GitHub 官方图片扩展包 LOGO 基础 URL 路径
+        const LOGO_BASE_URL = 'https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/sets';
+
+        // 语言代码到图片后缀的映射规则
+        const langCodeToLogoSuffix = {
+            'en': 'en_US',
+            'zh-TW': 'zh_TW',
+            'ja': 'ja_JP',
+            'ko': 'ko_KR',
+            'fr': 'fr_FR',
+            'de': 'de_DE',
+            'es': 'es_ES',
+            'it': 'it_IT'
         };
 
-        // 获取卡包展示名称
-        function getPackDisplayName(setId, rawSetName) {
-            const key = setId ? setId.toUpperCase() : '';
-            const mapped = expansionNameMap[key];
-            if (mapped) {
-                return currentLang.startsWith('zh') ? mapped['zh-CN'] : mapped['en'];
-            }
-            if (rawSetName && !rawSetName.toLowerCase().startsWith('expansion')) {
-                return rawSetName;
-            }
-            return key ? `Pack ${key}` : rawSetName;
+        // 获取官方扩展包 LOGO 的 CDN 拼接链接
+        function getPackLogoUrl(setId, lang) {
+            const suffix = langCodeToLogoSuffix[lang] || 'en_US';
+            const cleanSetId = setId ? setId.toUpperCase() : 'A1';
+            return `${LOGO_BASE_URL}/LOGO_expansion_${cleanSetId}_${suffix}.webp`;
         }
 
-        // 多语言词典 (支持官方 9 种语言)
+        // 多语言词典 (不包含 zh-CN)
         const i18nDict = {
             'en': {
                 subtitle: 'Strict equal-rarity trading matching system based on official database tags.',
@@ -297,32 +286,13 @@
                 queryBtn: 'Search Trades',
                 modalWelcome: 'When a match is found in the database, notifications will appear here. You can also search your Player ID above to check all your trade records.'
             },
-            'zh-CN': {
-                subtitle: '基于官方卡牌标签的严苛同等稀有度交易撮合系统。',
-                activeRarity: '当前稀有度',
-                reset: '重置',
-                notificationBtn: '匹配通知中心',
-                videoTitle: '5秒快速视频指南',
-                videoDesc: '快速学会如何选择同等稀有度卡牌并在线提交交易挂单。',
-                step1Title: '选择目标稀有度（同阶互换）',
-                step2Title: '卡包扩展树 - 选择【我有】与【想要】',
-                warningReq: '提示：',
-                warningText: '您必须至少选择 1 张【我有】的卡牌和 1 张【想要】的卡牌。',
-                loading: '正在加载卡牌数据库...',
-                step3Title: '输入 16 位游戏 Player ID',
-                step3Desc: '请输入您的 16 位游戏玩家 ID（如 1234-5678-9012-3456）以提交至撮合池。',
-                submitBtn: '提交至数据库',
-                modalTitle: '匹配通知与历史查询',
-                queryBtn: '查询我的挂单',
-                modalWelcome: '当数据库成功为你撮合交易时，对方联系信息会显示在这里。你也可以在上方输入 Player ID 查询历史挂单。'
-            },
             'zh-TW': {
                 subtitle: '基於官方卡牌標籤的嚴格同等稀有度交易撮合系統。',
                 activeRarity: '當前稀有度',
                 reset: '重置',
                 notificationBtn: '匹配通知中心',
                 videoTitle: '5秒快速影片指南',
-                videoDesc: '快速學會 how to 選擇同等稀有度卡牌並線上提交交易掛單。',
+                videoDesc: '快速學會如何選擇同等稀有度卡牌並線上提交交易掛單。',
                 step1Title: '選擇目標稀有度（同階互換）',
                 step2Title: '卡包擴展樹 - 選擇【我有】與【想要】',
                 warningReq: '提示：',
@@ -474,8 +444,11 @@
 
         function selectRarity(rarityKey, rarityLabel) {
             if (currentRarity !== rarityKey) {
-                if (Object.keys(userTradeData.have || {}).length > 0 || Object.keys(userTradeData.want || {}).length > 0) {
-                    if (!confirm(currentLang.startsWith('zh') ? '切换稀有度将重置当前选择的卡片，是否继续？' : 'Switching rarity tier will reset your selected cards. Continue?')) {
+                if (Object.keys(userTradeData.have).length > 0 || Object.keys(userTradeData.want).length > 0) {
+                    const confirmText = currentLang === 'zh-TW' 
+                        ? '切換稀有度將重置當前選擇的卡片，是否繼續？' 
+                        : 'Switching rarity tier will reset your selected cards. Continue?';
+                    if (!confirm(confirmText)) {
                         return;
                     }
                 }
@@ -555,23 +528,31 @@
                     let packageHaveCount = 0;
                     let packageWantCount = 0;
                     set.cards.forEach(c => {
-                        if (userTradeData.have && userTradeData.have[c.id]) packageHaveCount++;
-                        if (userTradeData.want && userTradeData.want[c.id]) packageWantCount++;
+                        if (userTradeData.have[c.id]) packageHaveCount++;
+                        if (userTradeData.want[c.id]) packageWantCount++;
                     });
 
-                    const displayName = getPackDisplayName(set.setId, set.setName);
+                    // 动态获取当前语言下的包 LOGO URL 和 Fallback 英文 URL
+                    const packLogoUrl = getPackLogoUrl(set.setId, currentLang);
+                    const fallbackLogoUrl = getPackLogoUrl(set.setId, 'en');
 
                     wrapper.innerHTML = `
-                        <button onclick="toggleAccordion('${accordionId}', '${arrowId}')" class="w-full px-6 py-4 flex justify-between items-center bg-slate-800 hover:bg-slate-750 transition-colors text-left">
-                            <div class="flex items-center gap-3">
-                                <span class="text-amber-400 font-mono font-bold text-sm">📁 ${set.setId}</span>
-                                <span class="font-bold text-slate-100 text-base">${displayName}</span>
-                                <span class="text-xs bg-slate-700 text-slate-300 px-2.5 py-0.5 rounded-full font-mono">${set.totalCards} cards</span>
+                        <button onclick="toggleAccordion('${accordionId}', '${arrowId}')" class="w-full px-6 py-3.5 flex justify-between items-center bg-slate-800 hover:bg-slate-750 transition-colors text-left">
+                            <div class="flex items-center gap-4">
+                                <div class="h-10 flex items-center min-w-[100px]">
+                                    <img 
+                                        src="${packLogoUrl}" 
+                                        alt="${set.setId}" 
+                                        onerror="this.onerror=null; this.src='${fallbackLogoUrl}'; this.parentElement.innerHTML='<span class=\'text-amber-400 font-mono font-bold text-base\'>${set.setId}</span>';" 
+                                        class="max-h-9 max-w-[180px] object-contain drop-shadow"
+                                    >
+                                </div>
+                                <span class="text-xs bg-slate-700/80 text-slate-300 px-2.5 py-1 rounded-full font-mono border border-slate-600/50">${set.totalCards} cards</span>
                             </div>
                             <div class="flex items-center gap-4">
                                 <div class="text-xs flex gap-3 font-mono">
-                                    ${packageHaveCount > 0 ? `<span class="text-emerald-400">Have: ${packageHaveCount}</span>` : ''}
-                                    ${packageWantCount > 0 ? `<span class="text-rose-400">Want: ${packageWantCount}</span>` : ''}
+                                    ${packageHaveCount > 0 ? `<span class="text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30">Have: ${packageHaveCount}</span>` : ''}
+                                    ${packageWantCount > 0 ? `<span class="text-rose-400 bg-rose-950/60 px-2 py-0.5 rounded border border-rose-500/30">Want: ${packageWantCount}</span>` : ''}
                                 </div>
                                 <span class="transform transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}" id="${arrowId}">▼</span>
                             </div>
@@ -580,8 +561,8 @@
                         <div id="${accordionId}" class="${isOpen ? '' : 'hidden'} p-6 border-t border-slate-700/60 bg-slate-900/40">
                             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                                 ${set.cards.map(card => {
-                                    const isHave = !!(userTradeData.have && userTradeData.have[card.id]);
-                                    const isWant = !!(userTradeData.want && userTradeData.want[card.id]);
+                                    const isHave = !!userTradeData.have[card.id];
+                                    const isWant = !!userTradeData.want[card.id];
 
                                     return `
                                         <div class="bg-slate-800 rounded-xl overflow-hidden border ${isHave ? 'border-emerald-500/80 shadow-emerald-900/20' : isWant ? 'border-rose-500/80 shadow-rose-900/20' : 'border-slate-700'} hover:border-amber-400/50 transition-all group flex flex-col">
@@ -630,35 +611,22 @@
             }
         }
 
-        // 彻底修复的卡牌状态选择逻辑
         function toggleStatus(cardId, type) {
-            if (!userTradeData.have) userTradeData.have = {};
-            if (!userTradeData.want) userTradeData.want = {};
-
             if (type === 'have') {
-                if (userTradeData.have[cardId]) {
-                    delete userTradeData.have[cardId];
-                } else { 
-                    userTradeData.have[cardId] = true; 
-                    delete userTradeData.want[cardId]; 
-                }
+                if (userTradeData.have[cardId]) delete userTradeData.have[cardId];
+                else { userTradeData.have[cardId] = true; delete userTradeData.want[cardId]; }
             } else if (type === 'want') {
-                if (userTradeData.want[cardId]) {
-                    delete userTradeData.want[cardId];
-                } else { 
-                    userTradeData.want[cardId] = true; 
-                    delete userTradeData.have[cardId]; 
-                }
+                if (userTradeData.want[cardId]) delete userTradeData.want[cardId];
+                else { userTradeData.want[cardId] = true; delete userTradeData.have[cardId]; }
             }
-            
             localStorage.setItem('tcg_trade_data', JSON.stringify(userTradeData));
             updateTradeValidation();
             if (currentRarity) fetchCardsTree(currentRarity);
         }
 
         function updateTradeValidation() {
-            const haveCount = Object.keys(userTradeData.have || {}).filter(id => userTradeData.have[id] === true).length;
-            const wantCount = Object.keys(userTradeData.want || {}).filter(id => userTradeData.want[id] === true).length;
+            const haveCount = Object.keys(userTradeData.have).length;
+            const wantCount = Object.keys(userTradeData.want).length;
 
             const warningEl = document.getElementById('validationWarning');
             if (haveCount === 0 || wantCount === 0) {
@@ -697,8 +665,8 @@
         }
 
         function validateSubmitButton() {
-            const haveCount = Object.keys(userTradeData.have || {}).filter(id => userTradeData.have[id] === true).length;
-            const wantCount = Object.keys(userTradeData.want || {}).filter(id => userTradeData.want[id] === true).length;
+            const haveCount = Object.keys(userTradeData.have).length;
+            const wantCount = Object.keys(userTradeData.want).length;
             const inputEl = document.getElementById('playerIdInput');
             const rawDigits = inputEl ? inputEl.value.replace(/\D/g, '') : '';
             const submitBtn = document.getElementById('submitTradeBtn');
@@ -712,21 +680,17 @@
             }
         }
 
-        // 彻底修复的提交逻辑
         async function submitTradeMatch() {
-            const haveIds = Object.keys(userTradeData.have || {}).filter(id => userTradeData.have[id] === true);
-            const wantIds = Object.keys(userTradeData.want || {}).filter(id => userTradeData.want[id] === true);
-            
+            const haveIds = Object.keys(userTradeData.have || {});
+            const wantIds = Object.keys(userTradeData.want || {});
             const rawPlayerId = document.getElementById('playerIdInput').value;
             const playerId = rawPlayerId.replace(/\D/g, '');
 
             if (haveIds.length === 0 || wantIds.length === 0) {
-                alert(currentLang.startsWith('zh') ? '提交失败：必须至少选择 1 张【我有】和 1 张【想要】的卡牌！' : 'Submit failed: You must select at least 1 HAVE and 1 WANT card!');
-                return;
-            }
-
-            if (playerId.length !== 16) {
-                alert(currentLang.startsWith('zh') ? '请输入正确的 16 位 Player ID！' : 'Please enter a valid 16-digit Player ID.');
+                const alertMsg = currentLang === 'zh-TW' 
+                    ? '提交失敗：必須至少選擇 1 張【我有】和 1 張【想要】的卡牌！' 
+                    : 'Submit failed: You must select at least 1 HAVE and 1 WANT card!';
+                alert(alertMsg);
                 return;
             }
 
@@ -735,8 +699,8 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        playerId: String(playerId),
-                        rarity: String(currentRarity),
+                        playerId,
+                        rarity: currentRarity,
                         have: haveIds,
                         want: wantIds
                     })
@@ -749,7 +713,6 @@
                 }
 
                 const data = await res.json();
-                
                 if (!res.ok || !data.success) {
                     throw new Error(data.error || `Server error with status ${res.status}`);
                 }
@@ -757,20 +720,19 @@
                 if (data.matched) {
                     const info = data.matchDetails || {};
                     addNotification(`🎉 Instant Match Found! Partner ID: ${info.partnerPlayerId} | You Give: ${info.youGive} | You Get: ${info.youGet}`);
-                    alert(`🎉 匹配成功！\n\n对方 Player ID: ${info.partnerPlayerId}\n你将付出: ${info.youGive}\n你将获得: ${info.youGet}`);
+                    alert(`🎉 Instant Match Found!\n\nPartner Player ID: ${info.partnerPlayerId}\nYou Give: ${info.youGive}\nYou Get: ${info.youGet}`);
                 } else {
                     addNotification(`✅ Trade request saved! Order ID: ${data.tradeId}`);
-                    alert(`✅ 挂单已成功提交至数据库！\n单号: ${data.tradeId}`);
+                    alert(`✅ Trade request saved to database successfully!\nTrade Order ID: ${data.tradeId}`);
                 }
 
                 postSubmitReset();
 
             } catch (err) {
-                alert(`提交失败: ${err.message}`);
+                alert(`Submit failed: ${err.message}`);
             }
         }
 
-        // 玩家主动查询自己的交易挂单
         async function queryMyTrades() {
             const input = document.getElementById('queryPlayerIdInput').value;
             const cleanId = input.replace(/\D/g, '');
