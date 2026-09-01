@@ -15,18 +15,31 @@
                 <h1 class="text-2xl font-bold bg-gradient-to-r from-amber-400 to-rose-500 bg-clip-text text-transparent">
                     TCG Pocket Trade Plaza
                 </h1>
-                <p class="text-xs text-slate-400 mt-0.5">Strict equal-rarity trading matching system based on official database tags.</p>
+                <p class="text-xs text-slate-400 mt-0.5" data-i18n="subtitle">Strict equal-rarity trading matching system based on official database tags.</p>
             </div>
             
-            <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- 多语言下拉框 -->
+                <select id="langSelect" onchange="changeLanguage(this.value)" class="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-500">
+                    <option value="en">English</option>
+                    <option value="zh-CN">简体中文</option>
+                    <option value="zh-TW">繁體中文</option>
+                    <option value="ja">日本語</option>
+                    <option value="ko">한국어</option>
+                    <option value="fr">Français</option>
+                    <option value="de">Deutsch</option>
+                    <option value="es">Español</option>
+                    <option value="it">Italiano</option>
+                </select>
+
                 <div id="currentRarityBadge" class="hidden text-xs bg-indigo-950 border border-indigo-500/50 text-indigo-300 px-3 py-1.5 rounded-lg flex items-center gap-2">
-                    <span>Active Rarity: <strong id="activeRarityText" class="text-white font-mono">None</strong></span>
-                    <button onclick="resetRarity()" class="text-rose-400 hover:text-rose-300 font-bold ml-1">✖ Reset</button>
+                    <span><span data-i18n="activeRarity">Active Rarity</span>: <strong id="activeRarityText" class="text-white font-mono">None</strong></span>
+                    <button onclick="resetRarity()" class="text-rose-400 hover:text-rose-300 font-bold ml-1">✖ <span data-i18n="reset">Reset</span></button>
                 </div>
 
-                <!-- 纯通知中心按钮 -->
+                <!-- 匹配通知与历史查询按钮 -->
                 <button onclick="openNotificationCenter()" class="relative bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-xs font-semibold transition-colors shadow flex items-center gap-2 border border-indigo-400/30">
-                    <span>✉️ 匹配通知</span>
+                    <span>✉️ <span data-i18n="notificationBtn">Match Center</span></span>
                     <span id="unreadDot" class="w-2 h-2 bg-rose-400 rounded-full animate-pulse"></span>
                 </button>
             </div>
@@ -41,8 +54,8 @@
             <div class="flex items-center gap-3">
                 <div class="bg-amber-500/20 p-2.5 rounded-xl text-amber-400 text-xl font-bold">🎬</div>
                 <div>
-                    <h3 class="text-sm font-bold text-slate-100">Quick Video Guide (5s)</h3>
-                    <p class="text-xs text-slate-400">Learn how to select equal-rarity cards and submit trade online in seconds.</p>
+                    <h3 class="text-sm font-bold text-slate-100" data-i18n="videoTitle">Quick Video Guide (5s)</h3>
+                    <p class="text-xs text-slate-400" data-i18n="videoDesc">Learn how to select equal-rarity cards and submit trade online in seconds.</p>
                 </div>
             </div>
             <div class="w-full md:w-80 aspect-video bg-slate-950 rounded-xl overflow-hidden border border-slate-700 flex items-center justify-center relative group">
@@ -57,7 +70,7 @@
         <div id="raritySelectorSection" class="space-y-4">
             <div class="flex items-center gap-2 border-b border-slate-700 pb-2">
                 <span class="bg-amber-500 text-slate-950 font-bold text-xs px-2 py-0.5 rounded">Step 1</span>
-                <h2 class="text-base font-bold text-slate-200">Select Target Rarity (Equal-Tier Trading)</h2>
+                <h2 class="text-base font-bold text-slate-200" data-i18n="step1Title">Select Target Rarity (Equal-Tier Trading)</h2>
             </div>
             
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-9 gap-2.5">
@@ -143,34 +156,34 @@
             </div>
         </div>
 
-        <!-- Step 2：扩展包树状选择区 -->
+        <!-- Step 2：扩展包选择区 -->
         <div id="treeContainerSection" class="hidden space-y-4">
             <div class="flex items-center justify-between border-b border-slate-700 pb-2">
                 <div class="flex items-center gap-2">
                     <span class="bg-indigo-600 text-white font-bold text-xs px-2 py-0.5 rounded">Step 2</span>
-                    <h2 class="text-base font-bold text-slate-200">Expansion Branch Tree - Select Have / Want</h2>
+                    <h2 class="text-base font-bold text-slate-200" data-i18n="step2Title">Expansion Branch Tree - Select Have / Want</h2>
                 </div>
                 <span class="text-xs text-slate-400 font-mono" id="selectedRarityIndicator"></span>
             </div>
 
             <div id="validationWarning" class="hidden bg-amber-500/10 border border-amber-500/40 text-amber-300 px-4 py-3 rounded-xl text-xs flex items-center justify-between">
-                <span>⚠️ <strong>Selection Required:</strong> You must select at least 1 <strong>HAVE</strong> card and 1 <strong>WANT</strong> card to proceed to Step 3.</span>
+                <span>⚠️ <strong data-i18n="warningReq">Selection Required:</strong> <span data-i18n="warningText">You must select at least 1 HAVE card and 1 WANT card.</span></span>
             </div>
 
-            <div id="loading" class="text-center py-16 text-slate-400">Loading expansion database...</div>
+            <div id="loading" class="text-center py-16 text-slate-400" data-i18n="loading">Loading expansion database...</div>
             <div id="errorMsg" class="hidden text-center py-10 text-rose-400 bg-rose-950/30 rounded-xl border border-rose-800/50"></div>
             
             <div id="accordionContainer" class="space-y-4"></div>
         </div>
 
-        <!-- Step 3：16位Player ID与提交匹配 -->
+        <!-- Step 3：Player ID 与提交匹配 -->
         <div id="step3Section" class="hidden bg-slate-800/90 border border-slate-700 rounded-2xl p-6 shadow-2xl space-y-4">
             <div class="flex items-center gap-2 border-b border-slate-700 pb-3">
                 <span class="bg-emerald-500 text-slate-950 font-bold text-xs px-2 py-0.5 rounded">Step 3</span>
-                <h2 class="text-base font-bold text-slate-100">Enter Your Game Player ID (16 Digits)</h2>
+                <h2 class="text-base font-bold text-slate-100" data-i18n="step3Title">Enter Your Game Player ID (16 Digits)</h2>
             </div>
 
-            <p class="text-xs text-slate-400">Provide your 16-digit In-Game ID (e.g. 1234-5678-9012-3456) to submit your trade request directly to the system database.</p>
+            <p class="text-xs text-slate-400" data-i18n="step3Desc">Provide your 16-digit In-Game ID (e.g. 1234-5678-9012-3456) to submit your trade request directly to the system database.</p>
 
             <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                 <div class="relative w-full sm:w-96">
@@ -191,7 +204,7 @@
                     onclick="submitTradeMatch()" 
                     class="w-full sm:w-auto px-6 py-3 bg-slate-700 text-slate-400 font-bold text-sm rounded-xl transition-all cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                    🚀 Submit to Database
+                    🚀 <span data-i18n="submitBtn">Submit to Database</span>
                 </button>
             </div>
             <div id="playerIdError" class="text-xs text-rose-400 font-mono hidden"></div>
@@ -199,15 +212,21 @@
 
     </main>
 
-    <!-- 纯系统通知中心弹窗（无发送功能） -->
+    <!-- 系统通知与历史记录中心弹窗 -->
     <div id="notificationModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-xl w-full h-[450px] shadow-2xl flex flex-col overflow-hidden">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-xl w-full h-[520px] shadow-2xl flex flex-col overflow-hidden">
             <div class="px-6 py-4 bg-slate-850 border-b border-slate-700 flex justify-between items-center">
                 <div class="flex items-center gap-2">
                     <span class="text-lg">🔔</span>
-                    <h3 class="text-base font-bold text-slate-100">System Notifications & Match Alerts</h3>
+                    <h3 class="text-base font-bold text-slate-100" data-i18n="modalTitle">Match Notifications & Inquiry</h3>
                 </div>
-                <button onclick="closeNotificationCenter()" class="text-slate-400 hover:text-white font-bold text-sm">✕ Close</button>
+                <button onclick="closeNotificationCenter()" class="text-slate-400 hover:text-white font-bold text-sm">✕</button>
+            </div>
+
+            <!-- 历史记录检索区 -->
+            <div class="p-4 bg-slate-900/60 border-b border-slate-700/80 flex gap-2">
+                <input type="text" id="queryPlayerIdInput" placeholder="Enter 16-digit Player ID to search trades" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-100 focus:outline-none focus:border-indigo-500">
+                <button onclick="queryMyTrades()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-4 py-2 rounded-lg font-bold transition-colors" data-i18n="queryBtn">Query My Trades</button>
             </div>
 
             <div class="flex-1 p-6 overflow-y-auto">
@@ -217,7 +236,7 @@
                             <span>SYSTEM ALERT</span>
                             <span>Automatic System</span>
                         </div>
-                        <p class="leading-relaxed">Trade submissions are strictly validated against equal rarities. When a match is found in the database, notifications will appear here with the partner's Player ID.</p>
+                        <p class="leading-relaxed" data-i18n="modalWelcome">When a match is found in the database, notifications will appear here. You can also search your Player ID above to check all your trade records.</p>
                     </div>
                 </div>
             </div>
@@ -225,14 +244,200 @@
     </div>
 
     <script>
+        // 多语言词典 (支持官方 9 种语言)
+        const i18nDict = {
+            'en': {
+                subtitle: 'Strict equal-rarity trading matching system based on official database tags.',
+                activeRarity: 'Active Rarity',
+                reset: 'Reset',
+                notificationBtn: 'Match Center',
+                videoTitle: 'Quick Video Guide (5s)',
+                videoDesc: 'Learn how to select equal-rarity cards and submit trade online in seconds.',
+                step1Title: 'Select Target Rarity (Equal-Tier Trading)',
+                step2Title: 'Expansion Branch Tree - Select Have / Want',
+                warningReq: 'Selection Required:',
+                warningText: 'You must select at least 1 HAVE card and 1 WANT card.',
+                loading: 'Loading expansion database...',
+                step3Title: 'Enter Your Game Player ID (16 Digits)',
+                step3Desc: 'Provide your 16-digit In-Game ID to submit your trade request directly to the system database.',
+                submitBtn: 'Submit to Database',
+                modalTitle: 'Match Notifications & Inquiry',
+                queryBtn: 'Search Trades',
+                modalWelcome: 'When a match is found in the database, notifications will appear here. You can also search your Player ID above to check all your trade records.'
+            },
+            'zh-CN': {
+                subtitle: '基于官方卡牌标签的严苛同等稀有度交易撮合系统。',
+                activeRarity: '当前稀有度',
+                reset: '重置',
+                notificationBtn: '匹配通知中心',
+                videoTitle: '5秒快速视频指南',
+                videoDesc: '快速学会如何选择同等稀有度卡牌并在线提交交易挂单。',
+                step1Title: '选择目标稀有度（同阶互换）',
+                step2Title: '卡包扩展树 - 选择【我有】与【想要】',
+                warningReq: '提示：',
+                warningText: '您必须至少选择 1 张【我有】的卡牌和 1 张【想要】的卡牌。',
+                loading: '正在加载卡牌数据库...',
+                step3Title: '输入 16 位游戏 Player ID',
+                step3Desc: '请输入您的 16 位游戏玩家 ID（如 1234-5678-9012-3456）以提交至撮合池。',
+                submitBtn: '提交至数据库',
+                modalTitle: '匹配通知与历史查询',
+                queryBtn: '查询我的挂单',
+                modalWelcome: '当数据库成功为你撮合交易时，对方联系信息会显示在这里。你也可以在上方输入 Player ID 查询历史挂单。'
+            },
+            'zh-TW': {
+                subtitle: '基於官方卡牌標籤的嚴格同等稀有度交易撮合系統。',
+                activeRarity: '當前稀有度',
+                reset: '重置',
+                notificationBtn: '匹配通知中心',
+                videoTitle: '5秒快速影片指南',
+                videoDesc: '快速學會如何選擇同等稀有度卡牌並線上提交交易掛單。',
+                step1Title: '選擇目標稀有度（同階互換）',
+                step2Title: '卡包擴展樹 - 選擇【我有】與【想要】',
+                warningReq: '提示：',
+                warningText: '您必須至少選擇 1 張【我有】的卡牌和 1 張【想要】的卡牌。',
+                loading: '正在載入卡牌資料庫...',
+                step3Title: '輸入 16 位遊戲 Player ID',
+                step3Desc: '請輸入您的 16 位遊戲玩家 ID（如 1234-5678-9012-3456）以提交至撮合池。',
+                submitBtn: '提交至資料庫',
+                modalTitle: '匹配通知與歷史查詢',
+                queryBtn: '查詢我的掛單',
+                modalWelcome: '當資料庫成功為你撮合交易時，對方聯繫資訊會顯示在這裡。你也可以在上方輸入 Player ID 查詢歷史掛單。'
+            },
+            'ja': {
+                subtitle: '公式データベースタグに基づく同等レアリティ厳格トレードマッチングシステム。',
+                activeRarity: '選択中のレアリティ',
+                reset: 'リセット',
+                notificationBtn: 'マッチ通知センター',
+                videoTitle: '5秒ガイド動画',
+                videoDesc: 'カードを選択してトレードを登録する方法をクイックに解説。',
+                step1Title: '目標レアリティを選択 (同等トレード)',
+                step2Title: '拡張パックツリー - 「譲」と「求」を選択',
+                warningReq: '選択必須:',
+                warningText: '「譲」カードと「求」カードをそれぞれ1枚以上選択してください。',
+                loading: 'カードデータベースを読み込み中...',
+                step3Title: '16桁のプレイヤーIDを入力',
+                step3Desc: 'トレード申請をデータベースに送信するために、16桁のプレイヤーIDを入力してください。',
+                submitBtn: '数据库に送信',
+                modalTitle: 'マッチ通知＆履歴照会',
+                queryBtn: '履歴を検索',
+                modalWelcome: 'マッチングが成功するとここに通知が表示されます。上部でプレイヤーIDを入力して過去のトレードを検索できます。'
+            },
+            'ko': {
+                subtitle: '공식 데이터베이스 태그를 기반으로 한 동일 등급 엄격 교환 시스템.',
+                activeRarity: '선택된 희귀도',
+                reset: '초기화',
+                notificationBtn: '매칭 알림 센터',
+                videoTitle: '5초 빠른 비디오 가이드',
+                videoDesc: '동일한 희귀도의 카드를 선택하고 거래를 제출하는 방법을 빠르게 알아보세요.',
+                step1Title: '목표 희귀도 선택 (동일 등급 교환)',
+                step2Title: '확장팩 트리 - [보유] 및 [희망] 선택',
+                warningReq: '필수 선택:',
+                warningText: '최소 1장의 [보유] 카드와 1장의 [희망] 카드를 선택해야 합니다.',
+                loading: '카드 데이터베이스 로딩 중...',
+                step3Title: '16자리 플레이어 ID 입력',
+                step3Desc: '시스템에 매칭 요청을 제출하려면 16자리 플레이어 ID를 입력하세요.',
+                submitBtn: '데이터베이스에 제출',
+                modalTitle: '매칭 알림 및 내역 조회',
+                queryBtn: '거래 내역 조회',
+                modalWelcome: '매칭이 성공하면 여기에 알림이 표시됩니다. 플레이어 ID를 검색하여 내역을 확인할 수도 있습니다.'
+            },
+            'fr': {
+                subtitle: 'Système d\'échange strict par rareté basé sur la base de données officielle.',
+                activeRarity: 'Rareté active',
+                reset: 'Réinitialiser',
+                notificationBtn: 'Centre de notifications',
+                videoTitle: 'Guide vidéo rapide (5s)',
+                videoDesc: 'Apprenez à sélectionner des cartes de même rareté et à soumettre votre échange.',
+                step1Title: 'Sélectionner la rareté cible',
+                step2Title: 'Arborescence des extensions - Choisissez Possédé / Souhaité',
+                warningReq: 'Sélection requise:',
+                warningText: 'Vous devez choisir au moins 1 carte possédée et 1 carte souhaitée.',
+                loading: 'Chargement des cartes...',
+                step3Title: 'Entrez votre ID Joueur (16 chiffres)',
+                step3Desc: 'Fournissez votre ID Joueur à 16 chiffres pour soumettre votre demande.',
+                submitBtn: 'Soumettre à la base de données',
+                modalTitle: 'Notifications et historique',
+                queryBtn: 'Rechercher mes échanges',
+                modalWelcome: 'Les correspondances apparaîtront ici. Vous pouvez également rechercher votre ID Joueur ci-dessus.'
+            },
+            'de': {
+                subtitle: 'Striktes Tauschsystem nach Seltenheit basierend auf offiziellen Daten.',
+                activeRarity: 'Aktive Seltenheit',
+                reset: 'Zurücksetzen',
+                notificationBtn: 'Benachrichtigungen',
+                videoTitle: 'Video-Anleitung (5s)',
+                videoDesc: 'Lerne schnell, wie du Karten gleicher Seltenheit auswählst und tauschst.',
+                step1Title: 'Ziel-Seltenheit auswählen',
+                step2Title: 'Erweiterungsbaum - Biete / Suche auswählen',
+                warningReq: 'Auswahl erforderlich:',
+                warningText: 'Du musst mindestens 1 Biete-Karte und 1 Suche-Karte auswählen.',
+                loading: 'Karten werden geladen...',
+                step3Title: '16-stellige Spieler-ID eingeben',
+                step3Desc: 'Gib deine 16-stellige Spieler-ID ein, um das Tauschangebot abzusenden.',
+                submitBtn: 'In Datenbank eintragen',
+                modalTitle: 'Match-Benachrichtigungen & Suche',
+                queryBtn: 'Täusche suchen',
+                modalWelcome: 'Hier erscheinen Benachrichtigungen bei Treffern. Du kannst oben nach deiner Spieler-ID suchen.'
+            },
+            'es': {
+                subtitle: 'Sistema de intercambio estricto por rareza basado en la base de datos oficial.',
+                activeRarity: 'Rareza activa',
+                reset: 'Restablecer',
+                notificationBtn: 'Centro de avisos',
+                videoTitle: 'Guía rápida en vídeo (5s)',
+                videoDesc: 'Aprende a seleccionar cartas de la misma rareza y enviar tu intercambio.',
+                step1Title: 'Seleccionar rareza objetivo',
+                step2Title: 'Árbol de expansiones - Selecciona Tengo / Busco',
+                warningReq: 'Selección requerida:',
+                warningText: 'Debes seleccionar al menos 1 carta "Tengo" y 1 carta "Busco".',
+                loading: 'Cargando base de datos...',
+                step3Title: 'Introduce tu ID de jugador (16 dígitos)',
+                step3Desc: 'Proporciona tu ID de jugador de 16 dígitos para enviar la solicitud.',
+                submitBtn: 'Enviar a la base de datos',
+                modalTitle: 'Notificaciones y consultas',
+                queryBtn: 'Buscar mis intercambios',
+                modalWelcome: 'Las coincidencias aparecerán aquí. También puedes buscar tu ID de jugador arriba.'
+            },
+            'it': {
+                subtitle: 'Sistema di scambio rigido per rarità basato sul database ufficiale.',
+                activeRarity: 'Rarità attiva',
+                reset: 'Ripristina',
+                notificationBtn: 'Centro notifiche',
+                videoTitle: 'Guida video rapida (5s)',
+                videoDesc: 'Impara a selezionare carte di pari rarità e inviare la richiesta.',
+                step1Title: 'Seleziona rarità obiettivo',
+                step2Title: 'Albero espansioni - Seleziona Offro / Cerco',
+                warningReq: 'Selezione richiesta:',
+                warningText: 'Devi selezionare almeno 1 carta Offro e 1 carta Cerco.',
+                loading: 'Caricamento database...',
+                step3Title: 'Inserisci ID Giocatore (16 cifre)',
+                step3Desc: 'Inserisci il tuo ID Giocatore a 16 cifre per inviare la richiesta.',
+                submitBtn: 'Invia al database',
+                modalTitle: 'Notifiche e cronologia',
+                queryBtn: 'Cerca i miei scambi',
+                modalWelcome: 'Le corrispondenze appariranno qui. Puoi anche cercare il tuo ID Giocatore in alto.'
+            }
+        };
+
+        let currentLang = 'en';
         let userTradeData = JSON.parse(localStorage.getItem('tcg_trade_data') || '{"have": {}, "want": {}}');
         let currentRarity = '';
         let currentRarityLabel = '';
 
-        // 切换稀有度：只清空勾选卡牌，保留可能输入的 Player ID
+        function changeLanguage(langKey) {
+            currentLang = langKey;
+            const dict = i18nDict[langKey] || i18nDict['en'];
+            
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (dict[key]) {
+                    el.textContent = dict[key];
+                }
+            });
+        }
+
         function selectRarity(rarityKey, rarityLabel) {
             clearSelectedCardsOnly();
-
             currentRarity = rarityKey;
             currentRarityLabel = rarityLabel;
 
@@ -448,12 +653,12 @@
             }
         }
 
-        // 提交交易请求并完美解析后端返回的异常信息
+        // 提交交易匹配
         async function submitTradeMatch() {
             const haveIds = Object.keys(userTradeData.have);
             const wantIds = Object.keys(userTradeData.want);
             const rawPlayerId = document.getElementById('playerIdInput').value;
-            const playerId = rawPlayerId.replace(/\D/g, ''); // 统一转为纯数字字符串
+            const playerId = rawPlayerId.replace(/\D/g, '');
 
             try {
                 const res = await fetch('/api/submit-trade', {
@@ -468,23 +673,20 @@
                 });
 
                 const contentType = res.headers.get('content-type') || '';
-                
-                // 1. 若返回的是 HTML 报错页面（通常发生在 Vercel 抛出 500 时）
                 if (!contentType.includes('application/json')) {
                     const errText = await res.text();
                     throw new Error(`Server status ${res.status}: ${errText.slice(0, 150)}...`);
                 }
 
-                // 2. 解析标准的 JSON 响应
                 const data = await res.json();
-
                 if (!res.ok || !data.success) {
                     throw new Error(data.error || `Server error with status ${res.status}`);
                 }
 
                 if (data.matched) {
-                    addNotification(`🎉 Instant Match Found! Partner ID: ${data.partnerPlayerId} | You Give: ${data.youGive} | You Get: ${data.youGet}`);
-                    alert(`🎉 Instant Match Found!\nPartner ID: ${data.partnerPlayerId}\nYou Give: ${data.youGive}\nYou Get: ${data.youGet}`);
+                    const info = data.matchDetails || {};
+                    addNotification(`🎉 Instant Match Found! Partner ID: ${info.partnerPlayerId} | You Give: ${info.youGive} | You Get: ${info.youGet}`);
+                    alert(`🎉 Instant Match Found!\n\nPartner Player ID: ${info.partnerPlayerId}\nYou Give: ${info.youGive}\nYou Get: ${info.youGet}`);
                 } else {
                     addNotification(`✅ Trade request saved! Order ID: ${data.tradeId}`);
                     alert(`✅ Trade request saved to database successfully!\nTrade Order ID: ${data.tradeId}`);
@@ -494,6 +696,60 @@
 
             } catch (err) {
                 alert(`Submit failed: ${err.message}`);
+            }
+        }
+
+        // 玩家主动查询自己的交易挂单
+        async function queryMyTrades() {
+            const input = document.getElementById('queryPlayerIdInput').value;
+            const cleanId = input.replace(/\D/g, '');
+
+            if (cleanId.length !== 16) {
+                alert('Please enter a valid 16-digit Player ID.');
+                return;
+            }
+
+            const history = document.getElementById('notificationHistory');
+            history.innerHTML = '<div class="text-center py-6 text-slate-400">Searching database...</div>';
+
+            try {
+                const res = await fetch(`/api/check-my-trades?playerId=${cleanId}`);
+                const json = await res.json();
+
+                if (!json.success) throw new Error(json.error || 'Failed to search');
+
+                const trades = json.data || [];
+                if (trades.length === 0) {
+                    history.innerHTML = `<div class="text-center py-6 text-slate-500">No trade records found for Player ID: ${cleanId}</div>`;
+                    return;
+                }
+
+                history.innerHTML = '';
+                trades.forEach(trade => {
+                    const item = document.createElement('div');
+                    const isMatched = trade.status === 'matched';
+                    item.className = `p-4 rounded-xl border text-xs ${isMatched ? 'bg-emerald-950/40 border-emerald-500/50 text-emerald-200' : 'bg-slate-900/80 border-slate-700 text-slate-300'}`;
+                    
+                    item.innerHTML = `
+                        <div class="flex justify-between font-mono text-[10px] opacity-70 mb-2">
+                            <span>STATUS: <strong class="${isMatched ? 'text-emerald-400' : 'text-amber-400'}">${trade.status.toUpperCase()}</strong></span>
+                            <span>${new Date(trade.created_at).toLocaleDateString()}</span>
+                        </div>
+                        ${isMatched ? `
+                            <div class="space-y-1 font-mono">
+                                <div>🤝 <strong>Matched Partner ID:</strong> <span class="text-white bg-slate-800 px-1.5 py-0.5 rounded">${trade.partner_player_id || 'Found'}</span></div>
+                                <div>📤 <strong>You Send:</strong> ${trade.matched_card_have || '-'}</div>
+                                <div>📥 <strong>You Get:</strong> ${trade.matched_card_want || '-'}</div>
+                            </div>
+                        ` : `
+                            <div>Rarity: <strong>${trade.rarity}</strong> | Pending match in queue.</div>
+                        `}
+                    `;
+                    history.appendChild(item);
+                });
+
+            } catch (err) {
+                history.innerHTML = `<div class="text-center py-6 text-rose-400">Error: ${err.message}</div>`;
             }
         }
 
