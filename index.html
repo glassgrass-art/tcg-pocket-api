@@ -6,7 +6,6 @@
     <title>Pokémon TCG Pocket - Standard Rarity Trade Plaza</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -58,7 +57,7 @@
                     </select>
                 </div>
 
-                <!-- 当选中的稀有度指示器 -->
+                <!-- 当前选中的稀有度指示器 -->
                 <div id="currentRarityBadge" class="hidden text-xs bg-indigo-950/80 border border-indigo-500/50 text-indigo-300 px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-inner">
                     <span><span data-i18n="activeRarity">Active Rarity</span>: <strong id="activeRarityText" class="text-amber-400 font-mono font-bold">None</strong></span>
                     <button onclick="resetRarity()" class="text-rose-400 hover:text-rose-300 font-bold ml-1 transition-colors" title="Reset Rarity">
@@ -300,20 +299,25 @@
 
     <!-- 前端脚本定义 -->
     <script>
-        // GitHub 仓库上的基础图片根路径
+        // 资源根路径
         const LOGO_BASE_URL = 'https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/sets';
 
-        // 语言代码映射
+        // 语言代码映射表（匹配静态资源文件名后缀）
         const langCodeToLogoSuffix = {
-            'en': 'en_US', 'zh-TW': 'zh_TW', 'ja': 'ja_JP', 'ko': 'ko_KR',
-            'fr': 'fr_FR', 'de': 'de_DE', 'es': 'es_ES', 'it': 'it_IT'
+            'en': 'en_US', 
+            'zh-TW': 'zh_TW', 
+            'ja': 'ja_JP', 
+            'ko': 'ko_KR',
+            'fr': 'fr_FR', 
+            'de': 'de_DE', 
+            'es': 'es_ES', 
+            'it': 'it_IT'
         };
 
-        // 补齐所有 24 个扩展包 Logo 的生成函数
+        // 获取包含 setId 与 语言后缀 的官方 WebP 图标 URL
         function getPackLogoUrl(setId, lang) {
             const suffix = langCodeToLogoSuffix[lang] || 'en_US';
-            // 规范化名称格式（例如：A1, A1a, A2, A2a, A2b, B1, B1a, PROMO-A 等）
-            const cleanSetId = setId ? setId.trim().toUpperCase() : 'A1';
+            const cleanSetId = setId ? setId.trim() : 'A1';
             return `${LOGO_BASE_URL}/LOGO_expansion_${cleanSetId}_${suffix}.webp`;
         }
 
@@ -346,7 +350,6 @@
         let currentRarity = '';
         let currentRarityLabel = '';
 
-        // 切换界面语言
         function changeLanguage(langKey) {
             currentLang = langKey;
             const dict = i18nDict[langKey] || i18nDict['en'];
@@ -357,12 +360,11 @@
             if (currentRarity) fetchCardsTree(currentRarity);
         }
 
-        // 选择稀有度
         function selectRarity(rarityKey, rarityLabel) {
             if (currentRarity !== rarityKey) {
                 if (Object.keys(userTradeData.have).length > 0 || Object.keys(userTradeData.want).length > 0) {
                     const confirmText = currentLang === 'zh-TW' 
-                        ? '切換稀有度将重置当前已选卡牌，是否继续？' 
+                        ? '切換稀有度將重置當前已選卡牌，是否繼續？' 
                         : 'Switching rarity tier will reset your selected cards. Continue?';
                     if (!confirm(confirmText)) return;
                 }
@@ -395,7 +397,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // 渲染卡包树及卡牌列表
         async function fetchCardsTree(rarity) {
             const container = document.getElementById('accordionContainer');
             const loading = document.getElementById('loading');
@@ -430,22 +431,27 @@
                         if (userTradeData.want[c.id]) packageWantCount++;
                     });
 
-                    // 预设语言 Logo 与 英文 Fallback Logo
+                    // 资源加载路径设置
                     const packLogoUrl = getPackLogoUrl(set.setId, currentLang);
                     const fallbackLogoUrl = getPackLogoUrl(set.setId, 'en');
 
                     wrapper.innerHTML = `
                         <button onclick="toggleAccordion('${accordionId}', '${arrowId}')" class="w-full px-6 py-4 flex justify-between items-center bg-slate-800 hover:bg-slate-750 transition-colors text-left border-b border-transparent">
-                            <div class="flex items-center gap-4">
-                                <div class="h-10 flex items-center min-w-[120px]">
+                            <div class="flex items-center gap-3 sm:gap-4">
+                                <!-- 在扩展包图片最左侧加入扩展包代码标签 (如 A1, A4B, PROMO-A 等) -->
+                                <span class="bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-mono font-black text-sm px-2.5 py-1 rounded-lg border border-amber-400/50 shadow-md">
+                                    ${set.setId}
+                                </span>
+                                <!-- 官方扩展包品牌图标图片 -->
+                                <div class="h-10 flex items-center min-w-[100px]">
                                     <img src="${packLogoUrl}" alt="${set.setId}" 
-                                        onerror="this.onerror=null; this.src='${fallbackLogoUrl}'; this.onerror=function(){ this.parentElement.innerHTML='<span class=\\'text-amber-400 font-mono font-black text-lg bg-slate-900/80 px-3 py-1 rounded-lg border border-slate-700\\'>${set.setId}</span>'; };" 
-                                        class="max-h-9 max-w-[180px] object-contain filter drop-shadow">
+                                        onerror="this.onerror=null; this.src='${fallbackLogoUrl}'; this.onerror=function(){ this.style.display='none'; };" 
+                                        class="max-h-9 max-w-[160px] object-contain filter drop-shadow">
                                 </div>
                                 <span class="text-xs bg-slate-700/80 text-slate-300 px-3 py-1 rounded-full font-mono border border-slate-600/50">${set.totalCards} cards</span>
                             </div>
                             <div class="flex items-center gap-4">
-                                <div class="text-xs flex gap-2.5 font-mono">
+                                <div class="text-xs flex gap-2 font-mono">
                                     ${packageHaveCount > 0 ? `<span class="text-emerald-400 bg-emerald-950/80 px-2.5 py-1 rounded-lg border border-emerald-500/30">Have: ${packageHaveCount}</span>` : ''}
                                     ${packageWantCount > 0 ? `<span class="text-rose-400 bg-rose-950/80 px-2.5 py-1 rounded-lg border border-rose-500/30">Want: ${packageWantCount}</span>` : ''}
                                 </div>
@@ -518,7 +524,6 @@
             validateSubmitButton();
         }
 
-        // 格式化 16 位 Player ID，自动加入短横线
         function formatAndValidatePlayerId(input) {
             if (!input) return;
             let rawDigits = input.value.replace(/\D/g, '').slice(0, 16);
@@ -557,7 +562,6 @@
             }
         }
 
-        // 提交交易挂单
         async function submitTradeMatch() {
             const submitBtn = document.getElementById('submitTradeBtn');
             const haveIds = Object.keys(userTradeData.have || {});
@@ -568,7 +572,6 @@
             submitBtn.disabled = true;
             submitBtn.innerHTML = `⌛ Submitting...`;
 
-            // 客户端强制 25 秒超时，防止无限等待
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 25000);
 
@@ -607,7 +610,6 @@
             }
         }
 
-        // 弹窗控制与查询逻辑
         function openNotificationCenter() { document.getElementById('notificationModal').classList.remove('hidden'); }
         function closeNotificationCenter() { document.getElementById('notificationModal').classList.add('hidden'); }
         function addNotification(text) {
@@ -654,7 +656,6 @@
             }
         }
 
-        // 初始化校验
         updateTradeValidation();
     </script>
 </body>
