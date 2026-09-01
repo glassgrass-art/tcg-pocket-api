@@ -302,7 +302,7 @@
         // 资源根路径
         const LOGO_BASE_URL = 'https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/sets';
 
-        // 语言代码映射表（匹配静态资源文件名后缀）
+        // 语言代码映射表
         const langCodeToLogoSuffix = {
             'en': 'en_US', 
             'zh-TW': 'zh_TW', 
@@ -319,6 +319,25 @@
             const suffix = langCodeToLogoSuffix[lang] || 'en_US';
             const cleanSetId = setId ? setId.trim() : 'A1';
             return `${LOGO_BASE_URL}/LOGO_expansion_${cleanSetId}_${suffix}.webp`;
+        }
+
+        // 图片加载失败的多重优雅回退机制
+        function handleLogoError(imgEl, setId) {
+            imgEl.onerror = null;
+            const fallbackUrl = getPackLogoUrl(setId, 'en');
+            
+            // 首次尝试回退到英文版图片
+            if (imgEl.src !== fallbackUrl) {
+                imgEl.src = fallbackUrl;
+                imgEl.onerror = function() {
+                    // 若英文版本依然不存在，则以胶囊样式显示文本 Tag 代替空白
+                    if (this.parentElement) {
+                        this.parentElement.innerHTML = `<span class="text-xs font-bold font-mono text-slate-300 bg-slate-700/80 border border-slate-600 px-2.5 py-1 rounded-lg">${setId}</span>`;
+                    }
+                };
+            } else if (imgEl.parentElement) {
+                imgEl.parentElement.innerHTML = `<span class="text-xs font-bold font-mono text-slate-300 bg-slate-700/80 border border-slate-600 px-2.5 py-1 rounded-lg">${setId}</span>`;
+            }
         }
 
         // 完整多语言词典
@@ -431,21 +450,15 @@
                         if (userTradeData.want[c.id]) packageWantCount++;
                     });
 
-                    // 资源加载路径设置
-                    const packLogoUrl = getPackLogoUrl(set.setId, currentLang);
-                    const fallbackLogoUrl = getPackLogoUrl(set.setId, 'en');
-
                     wrapper.innerHTML = `
                         <button onclick="toggleAccordion('${accordionId}', '${arrowId}')" class="w-full px-6 py-4 flex justify-between items-center bg-slate-800 hover:bg-slate-750 transition-colors text-left border-b border-transparent">
                             <div class="flex items-center gap-3 sm:gap-4">
-                                <!-- 在扩展包图片最左侧加入扩展包代码标签 (如 A1, A4B, PROMO-A 等) -->
                                 <span class="bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-mono font-black text-sm px-2.5 py-1 rounded-lg border border-amber-400/50 shadow-md">
                                     ${set.setId}
                                 </span>
-                                <!-- 官方扩展包品牌图标图片 -->
                                 <div class="h-10 flex items-center min-w-[100px]">
-                                    <img src="${packLogoUrl}" alt="${set.setId}" 
-                                        onerror="this.onerror=null; this.src='${fallbackLogoUrl}'; this.onerror=function(){ this.style.display='none'; };" 
+                                    <img src="${getPackLogoUrl(set.setId, currentLang)}" alt="${set.setId}" 
+                                        onerror="handleLogoError(this, '${set.setId}')" 
                                         class="max-h-9 max-w-[160px] object-contain filter drop-shadow">
                                 </div>
                                 <span class="text-xs bg-slate-700/80 text-slate-300 px-3 py-1 rounded-full font-mono border border-slate-600/50">${set.totalCards} cards</span>
@@ -628,9 +641,16 @@
                 return;
             }
             try {
-                const res = await fetch(`/api/my-trades?playerId=${playerId}`);
+                // 修正为 API 目录中实际的文件路径 check-my-trades
+                const res = await fetch(`/api/check-my-trades?player_id=${playerId}&playerId=${playerId}`);
+                
+                const contentType = res.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    throw new Error(`Server returned non-JSON response (${res.status})`);
+                }
+
                 const data = await res.json();
-                if (!data.success) throw new Error(data.error);
+                if (!res.ok || !data.success) throw new Error(data.error || 'Failed to query trades');
 
                 const history = document.getElementById('notificationHistory');
                 history.innerHTML = '';
@@ -644,7 +664,7 @@
                     item.innerHTML = `
                         <div class="flex justify-between font-mono text-[10px] text-slate-400">
                             <span>Order ID: ${t.id}</span>
-                            <span class="${t.status === 'matched' ? 'text-emerald-400 font-bold' : 'text-amber-400'}">${t.status.toUpperCase()}</span>
+                            <span class="${t.status === 'matched' ? 'text-emerald-400 font-bold' : 'text-amber-400'}">${(t.status || '').toUpperCase()}</span>
                         </div>
                         <p><strong>Rarity:</strong> ${t.rarity}</p>
                         ${t.partner_player_id ? `<p class="text-emerald-400 font-mono"><strong>Partner ID:</strong> ${t.partner_player_id}</p>` : ''}
