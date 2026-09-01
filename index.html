@@ -5,39 +5,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pokémon TCG Pocket - Standard Rarity Trade Plaza</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 自定义滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen pb-20">
+<body class="bg-slate-900 text-slate-100 min-h-screen pb-20 selection:bg-indigo-500 selection:text-white">
     
-    <!-- 顶部标题栏 -->
-    <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50 shadow-md">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div>
-                <h1 class="text-2xl font-bold bg-gradient-to-r from-amber-400 to-rose-500 bg-clip-text text-transparent">
-                    TCG Pocket Trade Plaza
-                </h1>
-                <p class="text-xs text-slate-400 mt-0.5" data-i18n="subtitle">Strict equal-rarity trading matching system based on official database tags.</p>
+    <!-- 顶部导航与标题栏 -->
+    <header class="bg-slate-800/90 backdrop-blur-md border-b border-slate-700/80 sticky top-0 z-50 shadow-xl">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-rose-500 flex items-center justify-center font-black text-slate-950 text-xl shadow-lg">
+                    🎴
+                </div>
+                <div>
+                    <h1 class="text-2xl font-extrabold bg-gradient-to-r from-amber-400 via-rose-400 to-indigo-400 bg-clip-text text-transparent">
+                        TCG Pocket Trade Plaza
+                    </h1>
+                    <p class="text-xs text-slate-400 mt-0.5 font-medium" data-i18n="subtitle">
+                        Strict equal-rarity trading matching system based on official database tags.
+                    </p>
+                </div>
             </div>
             
             <div class="flex flex-wrap items-center gap-3">
-                <!-- 多语言下拉框（无简体中文） -->
-                <select id="langSelect" onchange="changeLanguage(this.value)" class="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-500">
-                    <option value="en">English</option>
-                    <option value="zh-TW">繁體中文</option>
-                    <option value="ja">日本語</option>
-                    <option value="ko">한국어</option>
-                    <option value="fr">Français</option>
-                    <option value="de">Deutsch</option>
-                    <option value="es">Español</option>
-                    <option value="it">Italiano</option>
-                </select>
-
-                <div id="currentRarityBadge" class="hidden text-xs bg-indigo-950 border border-indigo-500/50 text-indigo-300 px-3 py-1.5 rounded-lg flex items-center gap-2">
-                    <span><span data-i18n="activeRarity">Active Rarity</span>: <strong id="activeRarityText" class="text-white font-mono">None</strong></span>
-                    <button onclick="resetRarity()" class="text-rose-400 hover:text-rose-300 font-bold ml-1">✖ <span data-i18n="reset">Reset</span></button>
+                <!-- 多语言选择器 -->
+                <div class="flex items-center bg-slate-900 border border-slate-700/80 rounded-xl px-2.5 py-1.5 shadow-inner">
+                    <span class="text-xs mr-2">🌐</span>
+                    <select id="langSelect" onchange="changeLanguage(this.value)" class="bg-transparent border-none text-slate-200 text-xs font-semibold focus:outline-none cursor-pointer">
+                        <option value="en" class="bg-slate-800">English</option>
+                        <option value="zh-TW" class="bg-slate-800">繁體中文</option>
+                        <option value="ja" class="bg-slate-800">日本語</option>
+                        <option value="ko" class="bg-slate-800">한국어</option>
+                        <option value="fr" class="bg-slate-800">Français</option>
+                        <option value="de" class="bg-slate-800">Deutsch</option>
+                        <option value="es" class="bg-slate-800">Español</option>
+                        <option value="it" class="bg-slate-800">Italiano</option>
+                    </select>
                 </div>
 
-                <!-- 匹配通知与历史查询按钮 -->
-                <button onclick="openNotificationCenter()" class="relative bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-xs font-semibold transition-colors shadow flex items-center gap-2 border border-indigo-400/30">
+                <!-- 当选中的稀有度指示器 -->
+                <div id="currentRarityBadge" class="hidden text-xs bg-indigo-950/80 border border-indigo-500/50 text-indigo-300 px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-inner">
+                    <span><span data-i18n="activeRarity">Active Rarity</span>: <strong id="activeRarityText" class="text-amber-400 font-mono font-bold">None</strong></span>
+                    <button onclick="resetRarity()" class="text-rose-400 hover:text-rose-300 font-bold ml-1 transition-colors" title="Reset Rarity">
+                        ✖ <span data-i18n="reset">Reset</span>
+                    </button>
+                </div>
+
+                <!-- 匹配通知与查询按钮 -->
+                <button onclick="openNotificationCenter()" class="relative bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md hover:shadow-indigo-500/20 flex items-center gap-2 border border-indigo-400/30">
                     <span>✉️ <span data-i18n="notificationBtn">Match Center</span></span>
                     <span id="unreadDot" class="w-2 h-2 bg-rose-400 rounded-full animate-pulse"></span>
                 </button>
@@ -46,18 +76,24 @@
     </header>
 
     <!-- 主体区域 -->
-    <main class="max-w-7xl mx-auto px-4 py-8 space-y-8">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
         
         <!-- 视频教程组件 -->
-        <div class="bg-slate-800/80 border border-amber-500/30 rounded-2xl p-4 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <div class="bg-amber-500/20 p-2.5 rounded-xl text-amber-400 text-xl font-bold">🎬</div>
+        <div class="bg-slate-800/80 border border-amber-500/30 rounded-2xl p-4 sm:p-5 shadow-xl backdrop-blur flex flex-col md:flex-row items-center justify-between gap-5">
+            <div class="flex items-start gap-4">
+                <div class="bg-gradient-to-br from-amber-500/20 to-amber-600/10 border border-amber-500/30 p-3 rounded-2xl text-amber-400 text-2xl font-bold shadow-inner">
+                    🎬
+                </div>
                 <div>
-                    <h3 class="text-sm font-bold text-slate-100" data-i18n="videoTitle">Quick Video Guide (5s)</h3>
-                    <p class="text-xs text-slate-400" data-i18n="videoDesc">Learn how to select equal-rarity cards and submit trade online in seconds.</p>
+                    <h3 class="text-base font-bold text-slate-100 flex items-center gap-2" data-i18n="videoTitle">
+                        Quick Video Guide (5s)
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-1 leading-relaxed max-w-xl" data-i18n="videoDesc">
+                        Learn how to select equal-rarity cards and submit trade online in seconds. Match system strictly enforces equal rarity trading to ensure fairness.
+                    </p>
                 </div>
             </div>
-            <div class="w-full md:w-80 aspect-video bg-slate-950 rounded-xl overflow-hidden border border-slate-700 flex items-center justify-center relative group">
+            <div class="w-full md:w-80 aspect-video bg-slate-950 rounded-xl overflow-hidden border border-slate-700/80 flex items-center justify-center relative shadow-inner group">
                 <video id="tutorialVideo" controls class="w-full h-full object-cover" poster="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp">
                     <source src="YOUR_VIDEO_URL_HERE.mp4" type="video/mp4">
                     Your browser does not support the video tag.
@@ -65,124 +101,143 @@
             </div>
         </div>
 
-        <!-- Step 1：官方稀有度选择 -->
+        <!-- Step 1：官方稀有度选择面板 -->
         <div id="raritySelectorSection" class="space-y-4">
-            <div class="flex items-center gap-2 border-b border-slate-700 pb-2">
-                <span class="bg-amber-500 text-slate-950 font-bold text-xs px-2 py-0.5 rounded">Step 1</span>
+            <div class="flex items-center gap-2.5 border-b border-slate-700/80 pb-3">
+                <span class="bg-amber-500 text-slate-950 font-black text-xs px-2.5 py-1 rounded-lg uppercase tracking-wider shadow">Step 1</span>
                 <h2 class="text-base font-bold text-slate-200" data-i18n="step1Title">Select Target Rarity (Equal-Tier Trading)</h2>
             </div>
             
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-9 gap-2.5">
-                <button onclick="selectRarity('C', '◇ Common (C)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start justify-between gap-1.5 transition-all">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-9 gap-3">
+                <!-- C -->
+                <button onclick="selectRarity('C', '◇ Common (C)')" class="rarity-card group p-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 hover:border-amber-400/80 hover:bg-slate-750 flex flex-col items-start justify-between gap-2 transition-all shadow-md hover:shadow-amber-500/10">
                     <div class="flex items-center gap-1.5">
-                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" class="w-3.5 h-3.5 object-contain">
-                        <span class="text-xs font-bold text-slate-200">C</span>
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" class="w-4 h-4 object-contain filter drop-shadow">
+                        <span class="text-sm font-black text-slate-200 group-hover:text-amber-400">C</span>
                     </div>
-                    <div class="text-[10px] text-slate-400">Common</div>
+                    <div class="text-[10px] text-slate-400 font-medium">Common</div>
                 </button>
 
-                <button onclick="selectRarity('U', '◇◇ Uncommon (U)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start justify-between gap-1.5 transition-all">
+                <!-- U -->
+                <button onclick="selectRarity('U', '◇◇ Uncommon (U)')" class="rarity-card group p-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 hover:border-amber-400/80 hover:bg-slate-750 flex flex-col items-start justify-between gap-2 transition-all shadow-md hover:shadow-amber-500/10">
                     <div class="flex items-center gap-1">
                         <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" class="w-3.5 h-3.5 object-contain">
                         <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" class="w-3.5 h-3.5 object-contain">
-                        <span class="text-xs font-bold text-slate-200 ml-0.5">U</span>
+                        <span class="text-sm font-black text-slate-200 group-hover:text-amber-400 ml-1">U</span>
                     </div>
-                    <div class="text-[10px] text-slate-400">Uncommon</div>
+                    <div class="text-[10px] text-slate-400 font-medium">Uncommon</div>
                 </button>
 
-                <button onclick="selectRarity('R', '◇◇◇ Rare (R)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start justify-between gap-1.5 transition-all">
-                    <div class="flex items-center gap-1">
+                <!-- R -->
+                <button onclick="selectRarity('R', '◇◇◇ Rare (R)')" class="rarity-card group p-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 hover:border-amber-400/80 hover:bg-slate-750 flex flex-col items-start justify-between gap-2 transition-all shadow-md hover:shadow-amber-500/10">
+                    <div class="flex items-center gap-0.5">
                         <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" class="w-3 h-3 object-contain">
                         <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" class="w-3 h-3 object-contain">
                         <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" class="w-3 h-3 object-contain">
-                        <span class="text-xs font-bold text-amber-400 ml-0.5">R</span>
+                        <span class="text-sm font-black text-amber-400 ml-1">R</span>
                     </div>
-                    <div class="text-[10px] text-slate-400">Rare</div>
+                    <div class="text-[10px] text-slate-400 font-medium">Rare</div>
                 </button>
 
-                <button onclick="selectRarity('RR', '◇◇◇◇ Double Rare (RR)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start justify-between gap-1.5 transition-all">
+                <!-- RR -->
+                <button onclick="selectRarity('RR', '◇◇◇◇ Double Rare (RR)')" class="rarity-card group p-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 hover:border-amber-400/80 hover:bg-slate-750 flex flex-col items-start justify-between gap-2 transition-all shadow-md hover:shadow-amber-500/10">
                     <div class="flex items-center gap-0.5">
                         <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" class="w-2.5 h-2.5 object-contain">
                         <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" class="w-2.5 h-2.5 object-contain">
                         <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" class="w-2.5 h-2.5 object-contain">
                         <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp" class="w-2.5 h-2.5 object-contain">
-                        <span class="text-xs font-bold text-amber-400 ml-0.5">RR</span>
+                        <span class="text-sm font-black text-amber-400 ml-1">RR</span>
                     </div>
-                    <div class="text-[10px] text-slate-400">Double Rare</div>
+                    <div class="text-[10px] text-slate-400 font-medium">Double Rare</div>
                 </button>
 
-                <button onclick="selectRarity('AR', '★ Art Rare (AR)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start justify-between gap-1.5 transition-all">
+                <!-- AR -->
+                <button onclick="selectRarity('AR', '★ Art Rare (AR)')" class="rarity-card group p-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 hover:border-emerald-400/80 hover:bg-slate-750 flex flex-col items-start justify-between gap-2 transition-all shadow-md hover:shadow-emerald-500/10">
                     <div class="flex items-center gap-1.5">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/star.webp" class="w-4 h-4 object-contain">
+                        <span class="text-sm font-black text-emerald-400">AR</span>
+                    </div>
+                    <div class="text-[10px] text-slate-400 font-medium">Art Rare</div>
+                </button>
+
+                <!-- SR -->
+                <button onclick="selectRarity('SR', '☆☆ Super Rare (SR / SAR)')" class="rarity-card group p-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 hover:border-yellow-400/80 hover:bg-slate-750 flex flex-col items-start justify-between gap-2 transition-all shadow-md hover:shadow-yellow-500/10">
+                    <div class="flex items-center gap-1">
                         <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/star.webp" class="w-3.5 h-3.5 object-contain">
-                        <span class="text-xs font-bold text-emerald-400">AR</span>
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/star.webp" class="w-3.5 h-3.5 object-contain">
+                        <span class="text-sm font-black text-yellow-400 ml-1">SR/SAR</span>
                     </div>
-                    <div class="text-[10px] text-slate-400">Art Rare</div>
+                    <div class="text-[10px] text-slate-400 font-medium">Super Rare</div>
                 </button>
 
-                <button onclick="selectRarity('SR', '☆☆ Super Rare (SR / SAR)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start justify-between gap-1.5 transition-all">
+                <!-- UR -->
+                <button onclick="selectRarity('UR', '👑 Crown Rare (UR)')" class="rarity-card group p-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 hover:border-rose-400/80 hover:bg-slate-750 flex flex-col items-start justify-between gap-2 transition-all shadow-md hover:shadow-rose-500/10">
+                    <div class="flex items-center gap-1.5">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/crown.webp" class="w-4 h-4 object-contain">
+                        <span class="text-sm font-black text-rose-400">UR</span>
+                    </div>
+                    <div class="text-[10px] text-slate-400 font-medium">Crown Rare</div>
+                </button>
+
+                <!-- S -->
+                <button onclick="selectRarity('S', '✨ Shiny (S)')" class="rarity-card group p-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 hover:border-cyan-400/80 hover:bg-slate-750 flex flex-col items-start justify-between gap-2 transition-all shadow-md hover:shadow-cyan-500/10">
+                    <div class="flex items-center gap-1.5">
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/shiny-star.webp" class="w-4 h-4 object-contain">
+                        <span class="text-sm font-black text-cyan-400">S</span>
+                    </div>
+                    <div class="text-[10px] text-slate-400 font-medium">Shiny</div>
+                </button>
+
+                <!-- SSR -->
+                <button onclick="selectRarity('SSR', '✨✨ Shiny Super Rare (SSR)')" class="rarity-card group p-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 hover:border-cyan-300/80 hover:bg-slate-750 flex flex-col items-start justify-between gap-2 transition-all shadow-md hover:shadow-cyan-500/10">
                     <div class="flex items-center gap-1">
-                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/star.webp" class="w-3 h-3 object-contain">
-                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/star.webp" class="w-3 h-3 object-contain">
-                        <span class="text-xs font-bold text-yellow-400 ml-0.5">SR/SAR</span>
-                    </div>
-                    <div class="text-[10px] text-slate-400">Super Rare</div>
-                </button>
-
-                <button onclick="selectRarity('UR', '👑 Crown Rare (UR)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 flex flex-col items-start justify-between gap-1.5 transition-all">
-                    <div class="flex items-center gap-1.5">
-                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/crown.webp" class="w-3.5 h-3.5 object-contain">
-                        <span class="text-xs font-bold text-rose-400">UR</span>
-                    </div>
-                    <div class="text-[10px] text-slate-400">Crown Rare</div>
-                </button>
-
-                <button onclick="selectRarity('S', '✨ Shiny (S)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-cyan-400 flex flex-col items-start justify-between gap-1.5 transition-all">
-                    <div class="flex items-center gap-1.5">
                         <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/shiny-star.webp" class="w-3.5 h-3.5 object-contain">
-                        <span class="text-xs font-bold text-cyan-400">S</span>
+                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/shiny-star.webp" class="w-3.5 h-3.5 object-contain">
+                        <span class="text-sm font-black text-cyan-300 ml-1">SSR</span>
                     </div>
-                    <div class="text-[10px] text-slate-400">Shiny</div>
-                </button>
-
-                <button onclick="selectRarity('SSR', '✨✨ Shiny Super Rare (SSR)')" class="rarity-card p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-cyan-400 flex flex-col items-start justify-between gap-1.5 transition-all">
-                    <div class="flex items-center gap-1">
-                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/shiny-star.webp" class="w-3 h-3 object-contain">
-                        <img src="https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/shiny-star.webp" class="w-3 h-3 object-contain">
-                        <span class="text-xs font-bold text-cyan-300 ml-0.5">SSR</span>
-                    </div>
-                    <div class="text-[10px] text-slate-400">Shiny Super</div>
+                    <div class="text-[10px] text-slate-400 font-medium">Shiny Super</div>
                 </button>
             </div>
         </div>
 
-        <!-- Step 2：扩展包选择区 -->
+        <!-- Step 2：扩展包选择面板与树形控件 -->
         <div id="treeContainerSection" class="hidden space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-700 pb-2">
-                <div class="flex items-center gap-2">
-                    <span class="bg-indigo-600 text-white font-bold text-xs px-2 py-0.5 rounded">Step 2</span>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-700/80 pb-3 gap-2">
+                <div class="flex items-center gap-2.5">
+                    <span class="bg-indigo-600 text-white font-black text-xs px-2.5 py-1 rounded-lg uppercase tracking-wider shadow">Step 2</span>
                     <h2 class="text-base font-bold text-slate-200" data-i18n="step2Title">Expansion Branch Tree - Select Have / Want</h2>
                 </div>
-                <span class="text-xs text-slate-400 font-mono" id="selectedRarityIndicator"></span>
+                <span class="text-xs text-amber-400 font-mono font-bold bg-slate-800 px-3 py-1 rounded-lg border border-slate-700" id="selectedRarityIndicator"></span>
             </div>
 
-            <div id="validationWarning" class="hidden bg-amber-500/10 border border-amber-500/40 text-amber-300 px-4 py-3 rounded-xl text-xs flex items-center justify-between">
-                <span>⚠️ <strong data-i18n="warningReq">Selection Required:</strong> <span data-i18n="warningText">You must select at least 1 HAVE card and 1 WANT card.</span></span>
+            <!-- 选择校验提醒 -->
+            <div id="validationWarning" class="hidden bg-amber-500/10 border border-amber-500/40 text-amber-300 px-4 py-3 rounded-2xl text-xs flex items-center justify-between shadow-lg">
+                <span class="flex items-center gap-2">
+                    <span class="text-base">⚠️</span>
+                    <span><strong data-i18n="warningReq">Selection Required:</strong> <span data-i18n="warningText">You must select at least 1 HAVE card and 1 WANT card.</span></span>
+                </span>
             </div>
 
-            <div id="loading" class="text-center py-16 text-slate-400" data-i18n="loading">Loading expansion database...</div>
-            <div id="errorMsg" class="hidden text-center py-10 text-rose-400 bg-rose-950/30 rounded-xl border border-rose-800/50"></div>
+            <div id="loading" class="text-center py-20 text-slate-400 space-y-3">
+                <div class="inline-block w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-xs font-semibold" data-i18n="loading">Loading expansion database...</p>
+            </div>
+            
+            <div id="errorMsg" class="hidden text-center py-10 text-rose-400 bg-rose-950/30 rounded-2xl border border-rose-800/50 text-sm font-medium"></div>
             
             <div id="accordionContainer" class="space-y-4"></div>
         </div>
 
-        <!-- Step 3：Player ID 与提交匹配 -->
-        <div id="step3Section" class="hidden bg-slate-800/90 border border-slate-700 rounded-2xl p-6 shadow-2xl space-y-4">
-            <div class="flex items-center gap-2 border-b border-slate-700 pb-3">
-                <span class="bg-emerald-500 text-slate-950 font-bold text-xs px-2 py-0.5 rounded">Step 3</span>
+        <!-- Step 3：Player ID 校验与提交 -->
+        <div id="step3Section" class="hidden bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 sm:p-8 shadow-2xl space-y-5">
+            <div class="flex items-center gap-2.5 border-b border-slate-700/80 pb-4">
+                <span class="bg-emerald-500 text-slate-950 font-black text-xs px-2.5 py-1 rounded-lg uppercase tracking-wider shadow">Step 3</span>
                 <h2 class="text-base font-bold text-slate-100" data-i18n="step3Title">Enter Your Game Player ID (16 Digits)</h2>
             </div>
 
-            <p class="text-xs text-slate-400" data-i18n="step3Desc">Provide your 16-digit In-Game ID (e.g. 1234-5678-9012-3456) to submit your trade request directly to the system database.</p>
+            <p class="text-xs text-slate-400 leading-relaxed" data-i18n="step3Desc">
+                Provide your 16-digit In-Game ID (e.g. 1234-5678-9012-3456) to submit your trade request directly to the system database.
+            </p>
 
             <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                 <div class="relative w-full sm:w-96">
@@ -192,232 +247,97 @@
                         maxlength="19" 
                         placeholder="xxxx-xxxx-xxxx-xxxx"
                         oninput="formatAndValidatePlayerId(this)"
-                        class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm font-mono tracking-widest text-slate-100 focus:outline-none transition-colors"
+                        class="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3.5 text-sm font-mono tracking-widest text-slate-100 placeholder:text-slate-600 focus:outline-none transition-colors shadow-inner"
                     >
-                    <span id="playerIdStatus" class="absolute right-3 top-3.5 text-xs font-bold text-slate-500">0/16</span>
+                    <span id="playerIdStatus" class="absolute right-3.5 top-4 text-xs font-bold text-slate-500 font-mono">0/16</span>
                 </div>
 
                 <button 
                     id="submitTradeBtn" 
                     disabled 
                     onclick="submitTradeMatch()" 
-                    class="w-full sm:w-auto px-6 py-3 bg-slate-700 text-slate-400 font-bold text-sm rounded-xl transition-all cursor-not-allowed flex items-center justify-center gap-2"
+                    class="w-full sm:w-auto px-8 py-3.5 bg-slate-700 text-slate-400 font-bold text-sm rounded-xl transition-all cursor-not-allowed flex items-center justify-center gap-2 shadow-md"
                 >
                     🚀 <span data-i18n="submitBtn">Submit to Database</span>
                 </button>
             </div>
-            <div id="playerIdError" class="text-xs text-rose-400 font-mono hidden"></div>
+            <div id="playerIdError" class="text-xs text-rose-400 font-mono hidden font-medium"></div>
         </div>
 
     </main>
 
     <!-- 系统通知与历史记录中心弹窗 -->
-    <div id="notificationModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-xl w-full h-[520px] shadow-2xl flex flex-col overflow-hidden">
-            <div class="px-6 py-4 bg-slate-850 border-b border-slate-700 flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <span class="text-lg">🔔</span>
+    <div id="notificationModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700/80 rounded-2xl max-w-xl w-full h-[540px] shadow-2xl flex flex-col overflow-hidden">
+            <div class="px-6 py-4 bg-slate-850 border-b border-slate-700/80 flex justify-between items-center">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-xl">🔔</span>
                     <h3 class="text-base font-bold text-slate-100" data-i18n="modalTitle">Match Notifications & Inquiry</h3>
                 </div>
-                <button onclick="closeNotificationCenter()" class="text-slate-400 hover:text-white font-bold text-sm">✕</button>
+                <button onclick="closeNotificationCenter()" class="text-slate-400 hover:text-white font-bold text-sm transition-colors p-1">✕</button>
             </div>
 
-            <!-- 历史记录检索区 -->
-            <div class="p-4 bg-slate-900/60 border-b border-slate-700/80 flex gap-2">
-                <input type="text" id="queryPlayerIdInput" placeholder="Enter 16-digit Player ID to search trades" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-100 focus:outline-none focus:border-indigo-500">
-                <button onclick="queryMyTrades()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-4 py-2 rounded-lg font-bold transition-colors" data-i18n="queryBtn">Query My Trades</button>
+            <div class="p-4 bg-slate-900/70 border-b border-slate-700/80 flex gap-2">
+                <input type="text" id="queryPlayerIdInput" placeholder="Enter 16-digit Player ID to search trades" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-100 focus:outline-none focus:border-indigo-500 shadow-inner">
+                <button onclick="queryMyTrades()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-4 py-2 rounded-xl font-bold transition-all shadow" data-i18n="queryBtn">Query My Trades</button>
             </div>
 
             <div class="flex-1 p-6 overflow-y-auto">
                 <div id="notificationHistory" class="space-y-3">
-                    <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700 text-xs text-slate-300">
-                        <div class="flex justify-between font-mono text-[10px] text-slate-500 mb-1.5">
+                    <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-700/80 text-xs text-slate-300">
+                        <div class="flex justify-between font-mono text-[10px] text-slate-500 mb-2">
                             <span>SYSTEM ALERT</span>
-                            <span>Automatic System</span>
+                            <span>Automatic Matcher</span>
                         </div>
-                        <p class="leading-relaxed" data-i18n="modalWelcome">When a match is found in the database, notifications will appear here. You can also search your Player ID above to check all your trade records.</p>
+                        <p class="leading-relaxed" data-i18n="modalWelcome">
+                            When a match is found in the database, notifications will appear here. You can also search your Player ID above to check all your trade records.
+                        </p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- 前端脚本定义 -->
     <script>
-        // GitHub 官方图片扩展包 LOGO 基础 URL 路径
+        // GitHub 仓库上的基础图片根路径
         const LOGO_BASE_URL = 'https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/sets';
 
-        // 语言代码到图片后缀的映射规则
+        // 语言代码映射
         const langCodeToLogoSuffix = {
-            'en': 'en_US',
-            'zh-TW': 'zh_TW',
-            'ja': 'ja_JP',
-            'ko': 'ko_KR',
-            'fr': 'fr_FR',
-            'de': 'de_DE',
-            'es': 'es_ES',
-            'it': 'it_IT'
+            'en': 'en_US', 'zh-TW': 'zh_TW', 'ja': 'ja_JP', 'ko': 'ko_KR',
+            'fr': 'fr_FR', 'de': 'de_DE', 'es': 'es_ES', 'it': 'it_IT'
         };
 
-        // 获取官方扩展包 LOGO 的 CDN 拼接链接
+        // 补齐所有 24 个扩展包 Logo 的生成函数
         function getPackLogoUrl(setId, lang) {
             const suffix = langCodeToLogoSuffix[lang] || 'en_US';
-            const cleanSetId = setId ? setId.toUpperCase() : 'A1';
+            // 规范化名称格式（例如：A1, A1a, A2, A2a, A2b, B1, B1a, PROMO-A 等）
+            const cleanSetId = setId ? setId.trim().toUpperCase() : 'A1';
             return `${LOGO_BASE_URL}/LOGO_expansion_${cleanSetId}_${suffix}.webp`;
         }
 
-        // 多语言词典 (不包含 zh-CN)
+        // 完整多语言词典
         const i18nDict = {
             'en': {
                 subtitle: 'Strict equal-rarity trading matching system based on official database tags.',
-                activeRarity: 'Active Rarity',
-                reset: 'Reset',
-                notificationBtn: 'Match Center',
-                videoTitle: 'Quick Video Guide (5s)',
-                videoDesc: 'Learn how to select equal-rarity cards and submit trade online in seconds.',
-                step1Title: 'Select Target Rarity (Equal-Tier Trading)',
-                step2Title: 'Expansion Branch Tree - Select Have / Want',
-                warningReq: 'Selection Required:',
-                warningText: 'You must select at least 1 HAVE card and 1 WANT card.',
-                loading: 'Loading expansion database...',
-                step3Title: 'Enter Your Game Player ID (16 Digits)',
-                step3Desc: 'Provide your 16-digit In-Game ID to submit your trade request directly to the system database.',
-                submitBtn: 'Submit to Database',
-                modalTitle: 'Match Notifications & Inquiry',
-                queryBtn: 'Search Trades',
+                activeRarity: 'Active Rarity', reset: 'Reset', notificationBtn: 'Match Center',
+                videoTitle: 'Quick Video Guide (5s)', videoDesc: 'Learn how to select equal-rarity cards and submit trade online in seconds.',
+                step1Title: 'Select Target Rarity (Equal-Tier Trading)', step2Title: 'Expansion Branch Tree - Select Have / Want',
+                warningReq: 'Selection Required:', warningText: 'You must select at least 1 HAVE card and 1 WANT card.',
+                loading: 'Loading expansion database...', step3Title: 'Enter Your Game Player ID (16 Digits)',
+                step3Desc: 'Provide your 16-digit In-Game ID (e.g. 1234-5678-9012-3456) to submit your trade request directly to the system database.',
+                submitBtn: 'Submit to Database', modalTitle: 'Match Notifications & Inquiry', queryBtn: 'Search Trades',
                 modalWelcome: 'When a match is found in the database, notifications will appear here. You can also search your Player ID above to check all your trade records.'
             },
             'zh-TW': {
-                subtitle: '基於官方卡牌標籤的嚴格同等稀有度交易撮合系統。',
-                activeRarity: '當前稀有度',
-                reset: '重置',
-                notificationBtn: '匹配通知中心',
-                videoTitle: '5秒快速影片指南',
-                videoDesc: '快速學會如何選擇同等稀有度卡牌並線上提交交易掛單。',
-                step1Title: '選擇目標稀有度（同階互換）',
-                step2Title: '卡包擴展樹 - 選擇【我有】與【想要】',
-                warningReq: '提示：',
-                warningText: '您必須至少選擇 1 張【我有】的卡牌和 1 張【想要】的卡牌。',
-                loading: '正在載入卡牌資料庫...',
-                step3Title: '輸入 16 位遊戲 Player ID',
-                step3Desc: '請輸入您的 16 位遊戲玩家 ID（如 1234-5678-9012-3456）以提交至撮合池。',
-                submitBtn: '提交至資料庫',
-                modalTitle: '匹配通知與歷史查詢',
-                queryBtn: '查詢我的掛單',
+                subtitle: '基於官方卡牌標籤的嚴格同等稀有度交易撮合系統。', activeRarity: '當前稀有度', reset: '重置', notificationBtn: '匹配通知中心',
+                videoTitle: '5秒快速影片指南', videoDesc: '快速學會如何選擇同等稀有度卡牌並線上提交交易掛單。',
+                step1Title: '選擇目標稀有度（同階互換）', step2Title: '卡包擴展樹 - 選擇【我有】與【想要】', warningReq: '提示：',
+                warningText: '您必須至少選擇 1 張【我有】的卡牌和 1 張【想要】的卡牌。', loading: '正在載入卡牌資料庫...',
+                step3Title: '輸入 16 位遊戲 Player ID', step3Desc: '請輸入您的 16 位遊戲玩家 ID（如 1234-5678-9012-3456）以提交至撮合池。',
+                submitBtn: '提交至資料庫', modalTitle: '匹配通知與歷史查詢', queryBtn: '查詢我的掛單',
                 modalWelcome: '當資料庫成功為你撮合交易時，對方聯繫資訊會顯示在這裡。你也可以在上方輸入 Player ID 查詢歷史掛單。'
-            },
-            'ja': {
-                subtitle: '公式データベースタグに基づく同等レアリティ厳格トレードマッチングシステム。',
-                activeRarity: '選択中のレアリティ',
-                reset: 'リセット',
-                notificationBtn: 'マッチ通知センター',
-                videoTitle: '5秒ガイド動画',
-                videoDesc: 'カードを選択してトレードを登録する方法をクイックに解説。',
-                step1Title: '目標レアリティを選択 (同等トレード)',
-                step2Title: '拡張パックツリー - 「譲」と「求」を選択',
-                warningReq: '選択必須:',
-                warningText: '「譲」カードと「求」カードをそれぞれ1枚以上選択してください。',
-                loading: 'カードデータベースを読み込み中...',
-                step3Title: '16桁のプレイヤーIDを入力',
-                step3Desc: 'トレード申請をデータベースに送信するために、16桁のプレイヤーIDを入力してください。',
-                submitBtn: 'データベースに送信',
-                modalTitle: 'マッチ通知＆履歴照会',
-                queryBtn: '履歴を検索',
-                modalWelcome: 'マッチングが成功するとここに通知が表示されます。上部でプレイヤーIDを入力して過去のトレードを検索できます。'
-            },
-            'ko': {
-                subtitle: '공식 데이터베이스 태그를 기반으로 한 동일 등급 엄격 교환 시스템.',
-                activeRarity: '선택된 희귀도',
-                reset: '초기화',
-                notificationBtn: '매칭 알림 센터',
-                videoTitle: '5초 빠른 비디오 가이드',
-                videoDesc: '동일한 희귀도의 카드를 선택하고 거래를 제출하는 방법을 빠르게 알아보세요.',
-                step1Title: '목표 희귀도 선택 (동일 등급 교환)',
-                step2Title: '확장팩 트리 - [보유] 및 [희망] 선택',
-                warningReq: '필수 선택:',
-                warningText: '최소 1장의 [보유] 카드와 1장의 [희망] 카드를 선택해야 합니다.',
-                loading: '카드 데이터베이스 로딩 중...',
-                step3Title: '16자리 플레이어 ID 입력',
-                step3Desc: '시스템에 매칭 요청을 제출하려면 16자리 플레이어 ID를 입력하세요.',
-                submitBtn: '데이터베이스에 제출',
-                modalTitle: '매칭 알림 및 내역 조회',
-                queryBtn: '거래 내역 조회',
-                modalWelcome: '매칭이 성공하면 여기에 알림이 표시됩니다. 플레이어 ID를 검색하여 내역을 확인할 수도 있습니다.'
-            },
-            'fr': {
-                subtitle: 'Système d\'échange strict par rareté basé sur la base de données officielle.',
-                activeRarity: 'Rareté active',
-                reset: 'Réinitialiser',
-                notificationBtn: 'Centre de notifications',
-                videoTitle: 'Guide vidéo rapide (5s)',
-                videoDesc: 'Apprenez à sélectionner des cartes de même rareté et à soumettre votre échange.',
-                step1Title: 'Sélectionner la rareté cible',
-                step2Title: 'Arborescence des extensions - Choisissez Possédé / Souhaité',
-                warningReq: 'Sélection requise:',
-                warningText: 'Vous devez choisir au moins 1 carte possédée et 1 carte souhaitée.',
-                loading: 'Chargement des cartes...',
-                step3Title: 'Entrez votre ID Joueur (16 chiffres)',
-                step3Desc: 'Fournissez votre ID Joueur à 16 chiffres pour soumettre votre demande.',
-                submitBtn: 'Soumettre à la base de données',
-                modalTitle: 'Notifications et historique',
-                queryBtn: 'Rechercher mes échanges',
-                modalWelcome: 'Les correspondances apparaîtront ici. Vous pouvez également rechercher votre ID Joueur ci-dessus.'
-            },
-            'de': {
-                subtitle: 'Striktes Tauschsystem nach Seltenheit basierend auf offiziellen Daten.',
-                activeRarity: 'Aktive Seltenheit',
-                reset: 'Zurücksetzen',
-                notificationBtn: 'Benachrichtigungen',
-                videoTitle: 'Video-Anleitung (5s)',
-                videoDesc: 'Lerne schnell, wie du Karten gleicher Seltenheit auswählst und tauschst.',
-                step1Title: 'Ziel-Seltenheit auswählen',
-                step2Title: 'Erweiterungsbaum - Biete / Suche auswählen',
-                warningReq: 'Auswahl erforderlich:',
-                warningText: 'Du musst mindestens 1 Biete-Karte und 1 Suche-Karte auswählen.',
-                loading: 'Karten werden geladen...',
-                step3Title: '16-stellige Spieler-ID eingeben',
-                step3Desc: 'Gib deine 16-stellige Spieler-ID ein, um das Tauschangebot abzusenden.',
-                submitBtn: 'In Datenbank eintragen',
-                modalTitle: 'Match-Benachrichtigungen & Suche',
-                queryBtn: 'Täusche suchen',
-                modalWelcome: 'Hier erscheinen Benachrichtigungen bei Treffern. Du kannst oben nach deiner Spieler-ID suchen.'
-            },
-            'es': {
-                subtitle: 'Sistema de intercambio estricto por rareza basado en la base de datos oficial.',
-                activeRarity: 'Rareza activa',
-                reset: 'Restablecer',
-                notificationBtn: 'Centro de avisos',
-                videoTitle: 'Guía rápida en vídeo (5s)',
-                videoDesc: 'Aprende a seleccionar cartas de la misma rareza y enviar tu intercambio.',
-                step1Title: 'Seleccionar rareza objetivo',
-                step2Title: 'Árbol de expansiones - Selecciona Tengo / Busco',
-                warningReq: 'Selección requerida:',
-                warningText: 'Debes seleccionar al menos 1 carta "Tengo" y 1 carta "Busco".',
-                loading: 'Cargando base de datos...',
-                step3Title: 'Introduce tu ID de jugador (16 dígitos)',
-                step3Desc: 'Proporciona tu ID de jugador de 16 dígitos para enviar la solicitud.',
-                submitBtn: 'Enviar a la base de datos',
-                modalTitle: 'Notificaciones y consultas',
-                queryBtn: 'Buscar mis intercambios',
-                modalWelcome: 'Las coincidencias aparecerán aquí. También puedes buscar tu ID de jugador arriba.'
-            },
-            'it': {
-                subtitle: 'Sistema di scambio rigido per rarità basato sul database ufficiale.',
-                activeRarity: 'Rarità attiva',
-                reset: 'Ripristina',
-                notificationBtn: 'Centro notifiche',
-                videoTitle: 'Guida video rapida (5s)',
-                videoDesc: 'Impara a selezionare carte di pari rarità e inviare la richiesta.',
-                step1Title: 'Seleziona rarità obiettivo',
-                step2Title: 'Albero espansioni - Seleziona Offro / Cerco',
-                warningReq: 'Selezione richiesta:',
-                warningText: 'Devi selezionare almeno 1 carta Offro e 1 carta Cerco.',
-                loading: 'Caricamento database...',
-                step3Title: 'Inserisci ID Giocatore (16 cifre)',
-                step3Desc: 'Inserisci il tuo ID Giocatore a 16 cifre per inviare la richiesta.',
-                submitBtn: 'Invia al database',
-                modalTitle: 'Notifiche e cronologia',
-                queryBtn: 'Cerca i miei scambi',
-                modalWelcome: 'Le corrispondenze appariranno qui. Puoi anche cercare il tuo ID Giocatore in alto.'
             }
         };
 
@@ -426,45 +346,35 @@
         let currentRarity = '';
         let currentRarityLabel = '';
 
+        // 切换界面语言
         function changeLanguage(langKey) {
             currentLang = langKey;
             const dict = i18nDict[langKey] || i18nDict['en'];
-            
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
-                if (dict[key]) {
-                    el.textContent = dict[key];
-                }
+                if (dict[key]) el.textContent = dict[key];
             });
-
-            if (currentRarity) {
-                fetchCardsTree(currentRarity);
-            }
+            if (currentRarity) fetchCardsTree(currentRarity);
         }
 
+        // 选择稀有度
         function selectRarity(rarityKey, rarityLabel) {
             if (currentRarity !== rarityKey) {
                 if (Object.keys(userTradeData.have).length > 0 || Object.keys(userTradeData.want).length > 0) {
                     const confirmText = currentLang === 'zh-TW' 
-                        ? '切換稀有度將重置當前選擇的卡片，是否繼續？' 
+                        ? '切換稀有度将重置当前已选卡牌，是否继续？' 
                         : 'Switching rarity tier will reset your selected cards. Continue?';
-                    if (!confirm(confirmText)) {
-                        return;
-                    }
+                    if (!confirm(confirmText)) return;
                 }
                 clearSelectedCardsOnly();
             }
-
             currentRarity = rarityKey;
             currentRarityLabel = rarityLabel;
-
             document.getElementById('activeRarityText').textContent = rarityLabel;
             document.getElementById('currentRarityBadge').classList.remove('hidden');
             document.getElementById('selectedRarityIndicator').textContent = `Active Filter: ${rarityLabel}`;
-
             document.getElementById('treeContainerSection').classList.remove('hidden');
             document.getElementById('step3Section').classList.remove('hidden');
-
             fetchCardsTree(rarityKey);
         }
 
@@ -474,18 +384,10 @@
             updateTradeValidation();
         }
 
-        function postSubmitReset() {
-            clearSelectedCardsOnly();
-            if (currentRarity) {
-                fetchCardsTree(currentRarity);
-            }
-        }
-
         function resetRarity() {
             currentRarity = '';
             currentRarityLabel = '';
             clearSelectedCardsOnly();
-
             document.getElementById('currentRarityBadge').classList.add('hidden');
             document.getElementById('treeContainerSection').classList.add('hidden');
             document.getElementById('step3Section').classList.add('hidden');
@@ -493,11 +395,11 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        // 渲染卡包树及卡牌列表
         async function fetchCardsTree(rarity) {
             const container = document.getElementById('accordionContainer');
             const loading = document.getElementById('loading');
             const errorMsg = document.getElementById('errorMsg');
-
             loading.style.display = 'block';
             errorMsg.style.display = 'none';
             container.innerHTML = '';
@@ -505,82 +407,73 @@
             try {
                 const res = await fetch(`/api/cards?rarity=${rarity}`);
                 const json = await res.json();
-
                 if (!json.success) throw new Error(json.error || 'Failed to fetch cards');
-
-                const fetchedSetsCache = json.data;
+                
                 loading.style.display = 'none';
                 updateTradeValidation();
 
-                if (!fetchedSetsCache || fetchedSetsCache.length === 0) {
-                    container.innerHTML = `<div class="text-center py-16 text-slate-500 bg-slate-800/40 rounded-2xl border border-slate-700">No cards found for this standard rarity tag.</div>`;
+                if (!json.data || json.data.length === 0) {
+                    container.innerHTML = `<div class="text-center py-16 text-slate-500 bg-slate-800/40 rounded-2xl border border-slate-700">No cards found for this rarity.</div>`;
                     return;
                 }
 
-                fetchedSetsCache.forEach((set, index) => {
+                json.data.forEach((set, index) => {
                     const isOpen = index === 0;
                     const accordionId = `set-panel-${set.setId}-${index}`;
                     const arrowId = `arrow-${set.setId}-${index}`;
-
                     const wrapper = document.createElement('div');
-                    wrapper.className = 'bg-slate-800/60 border border-slate-700 rounded-2xl overflow-hidden shadow-lg transition-all';
+                    wrapper.className = 'bg-slate-800/60 border border-slate-700/80 rounded-2xl overflow-hidden shadow-lg transition-all';
                     
-                    let packageHaveCount = 0;
-                    let packageWantCount = 0;
+                    let packageHaveCount = 0, packageWantCount = 0;
                     set.cards.forEach(c => {
                         if (userTradeData.have[c.id]) packageHaveCount++;
                         if (userTradeData.want[c.id]) packageWantCount++;
                     });
 
-                    // 动态获取当前语言下的包 LOGO URL 和 Fallback 英文 URL
+                    // 预设语言 Logo 与 英文 Fallback Logo
                     const packLogoUrl = getPackLogoUrl(set.setId, currentLang);
                     const fallbackLogoUrl = getPackLogoUrl(set.setId, 'en');
 
                     wrapper.innerHTML = `
-                        <button onclick="toggleAccordion('${accordionId}', '${arrowId}')" class="w-full px-6 py-3.5 flex justify-between items-center bg-slate-800 hover:bg-slate-750 transition-colors text-left">
+                        <button onclick="toggleAccordion('${accordionId}', '${arrowId}')" class="w-full px-6 py-4 flex justify-between items-center bg-slate-800 hover:bg-slate-750 transition-colors text-left border-b border-transparent">
                             <div class="flex items-center gap-4">
-                                <div class="h-10 flex items-center min-w-[100px]">
-                                    <img 
-                                        src="${packLogoUrl}" 
-                                        alt="${set.setId}" 
-                                        onerror="this.onerror=null; this.src='${fallbackLogoUrl}'; this.parentElement.innerHTML='<span class=\'text-amber-400 font-mono font-bold text-base\'>${set.setId}</span>';" 
-                                        class="max-h-9 max-w-[180px] object-contain drop-shadow"
-                                    >
+                                <div class="h-10 flex items-center min-w-[120px]">
+                                    <img src="${packLogoUrl}" alt="${set.setId}" 
+                                        onerror="this.onerror=null; this.src='${fallbackLogoUrl}'; this.onerror=function(){ this.parentElement.innerHTML='<span class=\\'text-amber-400 font-mono font-black text-lg bg-slate-900/80 px-3 py-1 rounded-lg border border-slate-700\\'>${set.setId}</span>'; };" 
+                                        class="max-h-9 max-w-[180px] object-contain filter drop-shadow">
                                 </div>
-                                <span class="text-xs bg-slate-700/80 text-slate-300 px-2.5 py-1 rounded-full font-mono border border-slate-600/50">${set.totalCards} cards</span>
+                                <span class="text-xs bg-slate-700/80 text-slate-300 px-3 py-1 rounded-full font-mono border border-slate-600/50">${set.totalCards} cards</span>
                             </div>
                             <div class="flex items-center gap-4">
-                                <div class="text-xs flex gap-3 font-mono">
-                                    ${packageHaveCount > 0 ? `<span class="text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30">Have: ${packageHaveCount}</span>` : ''}
-                                    ${packageWantCount > 0 ? `<span class="text-rose-400 bg-rose-950/60 px-2 py-0.5 rounded border border-rose-500/30">Want: ${packageWantCount}</span>` : ''}
+                                <div class="text-xs flex gap-2.5 font-mono">
+                                    ${packageHaveCount > 0 ? `<span class="text-emerald-400 bg-emerald-950/80 px-2.5 py-1 rounded-lg border border-emerald-500/30">Have: ${packageHaveCount}</span>` : ''}
+                                    ${packageWantCount > 0 ? `<span class="text-rose-400 bg-rose-950/80 px-2.5 py-1 rounded-lg border border-rose-500/30">Want: ${packageWantCount}</span>` : ''}
                                 </div>
-                                <span class="transform transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}" id="${arrowId}">▼</span>
+                                <span class="transform transition-transform duration-300 text-slate-400 text-xs ${isOpen ? 'rotate-180' : ''}" id="${arrowId}">▼</span>
                             </div>
                         </button>
-
                         <div id="${accordionId}" class="${isOpen ? '' : 'hidden'} p-6 border-t border-slate-700/60 bg-slate-900/40">
                             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                                 ${set.cards.map(card => {
                                     const isHave = !!userTradeData.have[card.id];
                                     const isWant = !!userTradeData.want[card.id];
-
                                     return `
-                                        <div class="bg-slate-800 rounded-xl overflow-hidden border ${isHave ? 'border-emerald-500/80 shadow-emerald-900/20' : isWant ? 'border-rose-500/80 shadow-rose-900/20' : 'border-slate-700'} hover:border-amber-400/50 transition-all group flex flex-col">
-                                            <div class="aspect-[3/4] bg-slate-900 relative overflow-hidden flex items-center justify-center p-2">
+                                        <div class="bg-slate-800 rounded-xl overflow-hidden border ${isHave ? 'border-emerald-500 shadow-lg shadow-emerald-950/50 ring-1 ring-emerald-500' : isWant ? 'border-rose-500 shadow-lg shadow-rose-950/50 ring-1 ring-rose-500' : 'border-slate-700/80'} hover:border-amber-400/50 transition-all group flex flex-col">
+                                            <div class="aspect-[3/4] bg-slate-950 relative overflow-hidden flex items-center justify-center p-2">
                                                 <img src="${card.image}" alt="${card.name}" loading="lazy" class="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300">
                                                 <div class="absolute top-2 left-2 flex flex-col gap-1">
-                                                    ${isHave ? '<span class="bg-emerald-500 text-slate-950 text-[10px] font-bold px-1.5 py-0.5 rounded shadow">Have</span>' : ''}
-                                                    ${isWant ? '<span class="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow">Want</span>' : ''}
+                                                    ${isHave ? '<span class="bg-emerald-500 text-slate-950 text-[10px] font-black px-1.5 py-0.5 rounded shadow">HAVE</span>' : ''}
+                                                    ${isWant ? '<span class="bg-rose-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded shadow">WANT</span>' : ''}
                                                 </div>
                                             </div>
-                                            <div class="p-3 flex flex-col flex-grow justify-between">
+                                            <div class="p-3 flex flex-col flex-grow justify-between bg-slate-800/90">
                                                 <div>
-                                                    <div class="text-xs text-amber-400 font-mono mb-1">${card.id}</div>
-                                                    <h3 class="font-bold text-sm text-slate-100 truncate">${card.name}</h3>
+                                                    <div class="text-[11px] text-amber-400 font-mono font-bold mb-0.5">${card.id}</div>
+                                                    <h3 class="font-bold text-xs text-slate-100 truncate" title="${card.name}">${card.name}</h3>
                                                 </div>
-                                                <div class="mt-3 pt-2 border-t border-slate-700/50 flex justify-between gap-2">
-                                                    <button onclick="toggleStatus('${card.id}', 'have')" class="flex-1 py-1 px-2 rounded text-xs font-semibold transition-colors ${isHave ? 'bg-emerald-600 text-white' : 'bg-slate-700 hover:bg-slate-600 text-slate-300'}">Have</button>
-                                                    <button onclick="toggleStatus('${card.id}', 'want')" class="flex-1 py-1 px-2 rounded text-xs font-semibold transition-colors ${isWant ? 'bg-rose-600 text-white' : 'bg-slate-700 hover:bg-slate-600 text-slate-300'}">Want</button>
+                                                <div class="mt-3 pt-2 border-t border-slate-700/60 flex justify-between gap-1.5">
+                                                    <button onclick="toggleStatus('${card.id}', 'have')" class="flex-1 py-1 px-2 rounded-lg text-xs font-bold transition-all ${isHave ? 'bg-emerald-600 text-white shadow' : 'bg-slate-700 hover:bg-slate-600 text-slate-300'}">Have</button>
+                                                    <button onclick="toggleStatus('${card.id}', 'want')" class="flex-1 py-1 px-2 rounded-lg text-xs font-bold transition-all ${isWant ? 'bg-rose-600 text-white shadow' : 'bg-slate-700 hover:bg-slate-600 text-slate-300'}">Want</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -591,24 +484,18 @@
                     `;
                     container.appendChild(wrapper);
                 });
-
             } catch (err) {
                 loading.style.display = 'none';
                 errorMsg.style.display = 'block';
-                errorMsg.textContent = `Error: ${err.message}`;
+                errorMsg.textContent = `Error loading cards: ${err.message}`;
             }
         }
 
         function toggleAccordion(panelId, arrowId) {
             const panel = document.getElementById(panelId);
             const arrow = document.getElementById(arrowId);
-            if (panel.classList.contains('hidden')) {
-                panel.classList.remove('hidden');
-                arrow.classList.add('rotate-180');
-            } else {
-                panel.classList.add('hidden');
-                arrow.classList.remove('rotate-180');
-            }
+            panel.classList.toggle('hidden');
+            arrow.classList.toggle('rotate-180');
         }
 
         function toggleStatus(cardId, type) {
@@ -627,40 +514,30 @@
         function updateTradeValidation() {
             const haveCount = Object.keys(userTradeData.have).length;
             const wantCount = Object.keys(userTradeData.want).length;
-
-            const warningEl = document.getElementById('validationWarning');
-            if (haveCount === 0 || wantCount === 0) {
-                warningEl.classList.remove('hidden');
-            } else {
-                warningEl.classList.add('hidden');
-            }
-
+            document.getElementById('validationWarning').classList.toggle('hidden', haveCount > 0 && wantCount > 0);
             validateSubmitButton();
         }
 
+        // 格式化 16 位 Player ID，自动加入短横线
         function formatAndValidatePlayerId(input) {
             if (!input) return;
             let rawDigits = input.value.replace(/\D/g, '').slice(0, 16);
-            let formatted = rawDigits.match(/.{1,4}/g)?.join('-') || rawDigits;
-            input.value = formatted;
-
+            input.value = rawDigits.match(/.{1,4}/g)?.join('-') || rawDigits;
             const statusEl = document.getElementById('playerIdStatus');
             const errorEl = document.getElementById('playerIdError');
 
             statusEl.textContent = `${rawDigits.length}/16`;
-
             if (rawDigits.length === 16) {
-                statusEl.className = "absolute right-3 top-3.5 text-xs font-bold text-emerald-400";
+                statusEl.className = "absolute right-3.5 top-4 text-xs font-bold text-emerald-400 font-mono";
                 errorEl.classList.add('hidden');
             } else if (rawDigits.length > 0) {
-                statusEl.className = "absolute right-3 top-3.5 text-xs font-bold text-amber-400";
+                statusEl.className = "absolute right-3.5 top-4 text-xs font-bold text-amber-400 font-mono";
                 errorEl.textContent = "Player ID must be exactly 16 digits.";
                 errorEl.classList.remove('hidden');
             } else {
-                statusEl.className = "absolute right-3 top-3.5 text-xs font-bold text-slate-500";
+                statusEl.className = "absolute right-3.5 top-4 text-xs font-bold text-slate-500 font-mono";
                 errorEl.classList.add('hidden');
             }
-
             validateSubmitButton();
         }
 
@@ -673,187 +550,111 @@
 
             if (haveCount > 0 && wantCount > 0 && rawDigits.length === 16) {
                 submitBtn.disabled = false;
-                submitBtn.className = "w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-emerald-500 to-indigo-600 text-white font-bold text-sm rounded-xl transition-all shadow-lg hover:brightness-110 cursor-pointer flex items-center justify-center gap-2";
+                submitBtn.className = "w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-500 via-teal-600 to-indigo-600 text-white font-bold text-sm rounded-xl transition-all shadow-lg hover:brightness-110 cursor-pointer flex items-center justify-center gap-2";
             } else {
                 submitBtn.disabled = true;
-                submitBtn.className = "w-full sm:w-auto px-6 py-3 bg-slate-700 text-slate-400 font-bold text-sm rounded-xl transition-all cursor-not-allowed flex items-center justify-center gap-2";
+                submitBtn.className = "w-full sm:w-auto px-8 py-3.5 bg-slate-700 text-slate-400 font-bold text-sm rounded-xl transition-all cursor-not-allowed flex items-center justify-center gap-2 shadow-md";
             }
         }
 
+        // 提交交易挂单
         async function submitTradeMatch() {
+            const submitBtn = document.getElementById('submitTradeBtn');
             const haveIds = Object.keys(userTradeData.have || {});
             const wantIds = Object.keys(userTradeData.want || {});
             const rawPlayerId = document.getElementById('playerIdInput').value;
             const playerId = rawPlayerId.replace(/\D/g, '');
 
-            if (haveIds.length === 0 || wantIds.length === 0) {
-                const alertMsg = currentLang === 'zh-TW' 
-                    ? '提交失敗：必須至少選擇 1 張【我有】和 1 張【想要】的卡牌！' 
-                    : 'Submit failed: You must select at least 1 HAVE and 1 WANT card!';
-                alert(alertMsg);
-                return;
-            }
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `⌛ Submitting...`;
+
+            // 客户端强制 25 秒超时，防止无限等待
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 25000);
 
             try {
                 const res = await fetch('/api/submit-trade', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        playerId,
-                        rarity: currentRarity,
-                        have: haveIds,
-                        want: wantIds
-                    })
+                    signal: controller.signal,
+                    body: JSON.stringify({ playerId, rarity: currentRarity, have: haveIds, want: wantIds })
                 });
-
-                const contentType = res.headers.get('content-type') || '';
-                if (!contentType.includes('application/json')) {
-                    const errText = await res.text();
-                    throw new Error(`Server status ${res.status}: ${errText.slice(0, 150)}...`);
-                }
+                clearTimeout(timeoutId);
 
                 const data = await res.json();
-                if (!res.ok || !data.success) {
-                    throw new Error(data.error || `Server error with status ${res.status}`);
-                }
+                if (!res.ok || !data.success) throw new Error(data.error || `Server returned error status ${res.status}`);
 
                 if (data.matched) {
                     const info = data.matchDetails || {};
-                    addNotification(`🎉 Instant Match Found! Partner ID: ${info.partnerPlayerId} | You Give: ${info.youGive} | You Get: ${info.youGet}`);
-                    alert(`🎉 Instant Match Found!\n\nPartner Player ID: ${info.partnerPlayerId}\nYou Give: ${info.youGive}\nYou Get: ${info.youGet}`);
+                    addNotification(`🎉 Instant Match Found! Partner ID: ${info.partnerPlayerId}`);
+                    alert(`🎉 Instant Match Found!\n\nPartner Player ID: ${info.partnerPlayerId}`);
                 } else {
                     addNotification(`✅ Trade request saved! Order ID: ${data.tradeId}`);
                     alert(`✅ Trade request saved to database successfully!\nTrade Order ID: ${data.tradeId}`);
                 }
 
-                postSubmitReset();
+                clearSelectedCardsOnly();
+                if (currentRarity) fetchCardsTree(currentRarity);
 
             } catch (err) {
-                alert(`Submit failed: ${err.message}`);
+                if (err.name === 'AbortError') {
+                    alert('Submission timed out. Please check your network or try again.');
+                } else {
+                    alert(`Submit failed: ${err.message}`);
+                }
+            } finally {
+                validateSubmitButton();
             }
+        }
+
+        // 弹窗控制与查询逻辑
+        function openNotificationCenter() { document.getElementById('notificationModal').classList.remove('hidden'); }
+        function closeNotificationCenter() { document.getElementById('notificationModal').classList.add('hidden'); }
+        function addNotification(text) {
+            const history = document.getElementById('notificationHistory');
+            const item = document.createElement('div');
+            item.className = "bg-indigo-950/80 border border-indigo-500/40 p-3.5 rounded-2xl text-xs text-indigo-100 shadow";
+            item.innerHTML = `<p class="font-medium">${text}</p>`;
+            history.prepend(item);
         }
 
         async function queryMyTrades() {
             const input = document.getElementById('queryPlayerIdInput').value;
-            const cleanId = input.replace(/\D/g, '');
-
-            if (cleanId.length !== 16) {
-                alert('Please enter a valid 16-digit Player ID.');
+            const playerId = input.replace(/\D/g, '');
+            if (playerId.length !== 16) {
+                alert('Please enter a valid 16-digit Player ID');
                 return;
             }
-
-            const history = document.getElementById('notificationHistory');
-            history.innerHTML = '<div class="text-center py-6 text-slate-400">Searching database...</div>';
-
             try {
-                const res = await fetch(`/api/check-my-trades?playerId=${cleanId}`);
-                const json = await res.json();
+                const res = await fetch(`/api/my-trades?playerId=${playerId}`);
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error);
 
-                if (!json.success) throw new Error(json.error || 'Failed to search');
-
-                const trades = json.data || [];
-                if (trades.length === 0) {
-                    history.innerHTML = `<div class="text-center py-6 text-slate-500">No trade records found for Player ID: ${cleanId}</div>`;
+                const history = document.getElementById('notificationHistory');
+                history.innerHTML = '';
+                if (!data.trades || data.trades.length === 0) {
+                    history.innerHTML = `<div class="text-xs text-slate-400 text-center py-6">No trade records found for this Player ID.</div>`;
                     return;
                 }
-
-                history.innerHTML = '';
-                trades.forEach(trade => {
+                data.trades.forEach(t => {
                     const item = document.createElement('div');
-                    const isMatched = trade.status === 'matched';
-
-                    const rawPartnerId = trade.displayPartnerId || trade.partner_player_id || '';
-                    const formattedPartnerId = rawPartnerId.length === 16 
-                        ? rawPartnerId.match(/.{1,4}/g).join('-') 
-                        : rawPartnerId;
-
-                    const giveImgUrl = trade.giveImg || trade.give_img || 'https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp';
-                    const getImgUrl = trade.getImg || trade.get_img || 'https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp';
-
-                    item.className = `p-4 rounded-xl border transition-all ${
-                        isMatched 
-                        ? 'bg-slate-900/90 border-emerald-500/50 shadow-lg shadow-emerald-950/30' 
-                        : 'bg-slate-900/60 border-slate-700'
-                    }`;
-
+                    item.className = "bg-slate-900 p-4 rounded-2xl border border-slate-700/80 text-xs text-slate-200 space-y-1.5 shadow";
                     item.innerHTML = `
-                        <div class="flex justify-between items-center font-mono text-[10px] pb-2 mb-3 border-b border-slate-700/60">
-                            <span class="flex items-center gap-1.5">
-                                <span class="w-2 h-2 rounded-full ${isMatched ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}"></span>
-                                <strong class="${isMatched ? 'text-emerald-400' : 'text-amber-400'} font-bold">
-                                    ${isMatched ? 'MATCHED' : 'PENDING'}
-                                </strong>
-                            </span>
-                            <span class="text-slate-400">${new Date(trade.created_at || Date.now()).toLocaleDateString()}</span>
+                        <div class="flex justify-between font-mono text-[10px] text-slate-400">
+                            <span>Order ID: ${t.id}</span>
+                            <span class="${t.status === 'matched' ? 'text-emerald-400 font-bold' : 'text-amber-400'}">${t.status.toUpperCase()}</span>
                         </div>
-
-                        ${isMatched ? `
-                            <div class="bg-slate-800/90 border border-slate-700 p-2.5 rounded-lg flex justify-between items-center mb-3">
-                                <div class="text-xs">
-                                    <span class="text-slate-400 block text-[10px]">Partner Player ID:</span>
-                                    <span class="font-mono font-bold text-amber-400 text-sm tracking-wide">${formattedPartnerId}</span>
-                                </div>
-                                <button onclick="navigator.clipboard.writeText('${rawPartnerId}'); alert('Player ID copied!');" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] px-2.5 py-1 rounded font-bold transition-colors">
-                                    Copy ID
-                                </button>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-3 bg-slate-950/60 p-3 rounded-xl border border-slate-800">
-                                <div class="flex flex-col items-center text-center">
-                                    <span class="text-[10px] font-bold text-rose-400 mb-1">📤 You Send</span>
-                                    <div class="w-16 h-22 bg-slate-900 rounded-lg overflow-hidden border border-rose-500/30 p-1 flex items-center justify-center">
-                                        <img src="${giveImgUrl}" onerror="this.src='https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp'" class="max-h-full max-w-full object-contain">
-                                    </div>
-                                    <span class="text-[10px] font-mono text-slate-300 mt-1">${trade.youGiveCard || trade.you_give || '-'}</span>
-                                </div>
-
-                                <div class="flex flex-col items-center text-center">
-                                    <span class="text-[10px] font-bold text-emerald-400 mb-1">📥 You Get</span>
-                                    <div class="w-16 h-22 bg-slate-900 rounded-lg overflow-hidden border border-emerald-500/30 p-1 flex items-center justify-center">
-                                        <img src="${getImgUrl}" onerror="this.src='https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp'" class="max-h-full max-w-full object-contain">
-                                    </div>
-                                    <span class="text-[10px] font-mono text-slate-300 mt-1">${trade.youGetCard || trade.you_get || '-'}</span>
-                                </div>
-                            </div>
-                        ` : `
-                            <div class="text-xs text-slate-400 flex justify-between items-center">
-                                <span>Rarity Tier: <strong class="text-amber-400 font-mono">${trade.rarity}</strong></span>
-                                <span class="text-[11px] text-slate-500">Waiting for partner...</span>
-                            </div>
-                        `}
+                        <p><strong>Rarity:</strong> ${t.rarity}</p>
+                        ${t.partner_player_id ? `<p class="text-emerald-400 font-mono"><strong>Partner ID:</strong> ${t.partner_player_id}</p>` : ''}
                     `;
                     history.appendChild(item);
                 });
-
             } catch (err) {
-                history.innerHTML = `<div class="text-center py-6 text-rose-400">Error: ${err.message}</div>`;
+                alert(`Query failed: ${err.message}`);
             }
         }
 
-        function openNotificationCenter() {
-            document.getElementById('notificationModal').classList.remove('hidden');
-            document.getElementById('unreadDot').classList.add('hidden');
-        }
-
-        function closeNotificationCenter() {
-            document.getElementById('notificationModal').classList.add('hidden');
-        }
-
-        function addNotification(text) {
-            const history = document.getElementById('notificationHistory');
-            const item = document.createElement('div');
-            item.className = "bg-indigo-950/80 border border-indigo-500/40 p-3 rounded-xl text-xs text-indigo-100";
-            item.innerHTML = `
-                <div class="flex justify-between font-mono text-[10px] text-indigo-300 mb-1">
-                    <span>SYSTEM NOTIFICATION</span>
-                    <span>Just now</span>
-                </div>
-                <p>${text}</p>
-            `;
-            history.prepend(item);
-            document.getElementById('unreadDot').classList.remove('hidden');
-        }
-
+        // 初始化校验
         updateTradeValidation();
     </script>
 </body>
