@@ -322,7 +322,7 @@
                 reset: '重置',
                 notificationBtn: '匹配通知中心',
                 videoTitle: '5秒快速影片指南',
-                videoDesc: '快速學會如何選擇同等稀有度卡牌並線上提交交易掛單。',
+                videoDesc: '快速學會 how to 選擇同等稀有度卡牌並線上提交交易掛單。',
                 step1Title: '選擇目標稀有度（同階互換）',
                 step2Title: '卡包擴展樹 - 選擇【我有】與【想要】',
                 warningReq: '提示：',
@@ -473,9 +473,8 @@
         }
 
         function selectRarity(rarityKey, rarityLabel) {
-            // 修复：仅当切换不同稀有度时才触发二次确认并清空，避免在同一稀有度重新选择卡牌时清空已选数据
             if (currentRarity !== rarityKey) {
-                if (Object.keys(userTradeData.have).length > 0 || Object.keys(userTradeData.want).length > 0) {
+                if (Object.keys(userTradeData.have || {}).length > 0 || Object.keys(userTradeData.want || {}).length > 0) {
                     if (!confirm(currentLang.startsWith('zh') ? '切换稀有度将重置当前选择的卡片，是否继续？' : 'Switching rarity tier will reset your selected cards. Continue?')) {
                         return;
                     }
@@ -556,11 +555,10 @@
                     let packageHaveCount = 0;
                     let packageWantCount = 0;
                     set.cards.forEach(c => {
-                        if (userTradeData.have[c.id]) packageHaveCount++;
-                        if (userTradeData.want[c.id]) packageWantCount++;
+                        if (userTradeData.have && userTradeData.have[c.id]) packageHaveCount++;
+                        if (userTradeData.want && userTradeData.want[c.id]) packageWantCount++;
                     });
 
-                    // 使用映射方法生成官方实际包名
                     const displayName = getPackDisplayName(set.setId, set.setName);
 
                     wrapper.innerHTML = `
@@ -582,8 +580,8 @@
                         <div id="${accordionId}" class="${isOpen ? '' : 'hidden'} p-6 border-t border-slate-700/60 bg-slate-900/40">
                             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                                 ${set.cards.map(card => {
-                                    const isHave = !!userTradeData.have[card.id];
-                                    const isWant = !!userTradeData.want[card.id];
+                                    const isHave = !!(userTradeData.have && userTradeData.have[card.id]);
+                                    const isWant = !!(userTradeData.want && userTradeData.want[card.id]);
 
                                     return `
                                         <div class="bg-slate-800 rounded-xl overflow-hidden border ${isHave ? 'border-emerald-500/80 shadow-emerald-900/20' : isWant ? 'border-rose-500/80 shadow-rose-900/20' : 'border-slate-700'} hover:border-amber-400/50 transition-all group flex flex-col">
@@ -632,22 +630,35 @@
             }
         }
 
+        // 彻底修复的卡牌状态选择逻辑
         function toggleStatus(cardId, type) {
+            if (!userTradeData.have) userTradeData.have = {};
+            if (!userTradeData.want) userTradeData.want = {};
+
             if (type === 'have') {
-                if (userTradeData.have[cardId]) delete userTradeData.have[cardId];
-                else { userTradeData.have[cardId] = true; delete userTradeData.want[cardId]; }
+                if (userTradeData.have[cardId]) {
+                    delete userTradeData.have[cardId];
+                } else { 
+                    userTradeData.have[cardId] = true; 
+                    delete userTradeData.want[cardId]; 
+                }
             } else if (type === 'want') {
-                if (userTradeData.want[cardId]) delete userTradeData.want[cardId];
-                else { userTradeData.want[cardId] = true; delete userTradeData.have[cardId]; }
+                if (userTradeData.want[cardId]) {
+                    delete userTradeData.want[cardId];
+                } else { 
+                    userTradeData.want[cardId] = true; 
+                    delete userTradeData.have[cardId]; 
+                }
             }
+            
             localStorage.setItem('tcg_trade_data', JSON.stringify(userTradeData));
             updateTradeValidation();
             if (currentRarity) fetchCardsTree(currentRarity);
         }
 
         function updateTradeValidation() {
-            const haveCount = Object.keys(userTradeData.have).length;
-            const wantCount = Object.keys(userTradeData.want).length;
+            const haveCount = Object.keys(userTradeData.have || {}).filter(id => userTradeData.have[id] === true).length;
+            const wantCount = Object.keys(userTradeData.want || {}).filter(id => userTradeData.want[id] === true).length;
 
             const warningEl = document.getElementById('validationWarning');
             if (haveCount === 0 || wantCount === 0) {
@@ -686,8 +697,8 @@
         }
 
         function validateSubmitButton() {
-            const haveCount = Object.keys(userTradeData.have).length;
-            const wantCount = Object.keys(userTradeData.want).length;
+            const haveCount = Object.keys(userTradeData.have || {}).filter(id => userTradeData.have[id] === true).length;
+            const wantCount = Object.keys(userTradeData.want || {}).filter(id => userTradeData.want[id] === true).length;
             const inputEl = document.getElementById('playerIdInput');
             const rawDigits = inputEl ? inputEl.value.replace(/\D/g, '') : '';
             const submitBtn = document.getElementById('submitTradeBtn');
@@ -701,10 +712,11 @@
             }
         }
 
-        // 提交交易匹配（修复前端拦截与数据非空校验）
+        // 彻底修复的提交逻辑
         async function submitTradeMatch() {
-            const haveIds = Object.keys(userTradeData.have || {});
-            const wantIds = Object.keys(userTradeData.want || {});
+            const haveIds = Object.keys(userTradeData.have || {}).filter(id => userTradeData.have[id] === true);
+            const wantIds = Object.keys(userTradeData.want || {}).filter(id => userTradeData.want[id] === true);
+            
             const rawPlayerId = document.getElementById('playerIdInput').value;
             const playerId = rawPlayerId.replace(/\D/g, '');
 
@@ -713,13 +725,18 @@
                 return;
             }
 
+            if (playerId.length !== 16) {
+                alert(currentLang.startsWith('zh') ? '请输入正确的 16 位 Player ID！' : 'Please enter a valid 16-digit Player ID.');
+                return;
+            }
+
             try {
                 const res = await fetch('/api/submit-trade', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        playerId,
-                        rarity: currentRarity,
+                        playerId: String(playerId),
+                        rarity: String(currentRarity),
                         have: haveIds,
                         want: wantIds
                     })
@@ -732,6 +749,7 @@
                 }
 
                 const data = await res.json();
+                
                 if (!res.ok || !data.success) {
                     throw new Error(data.error || `Server error with status ${res.status}`);
                 }
@@ -739,16 +757,16 @@
                 if (data.matched) {
                     const info = data.matchDetails || {};
                     addNotification(`🎉 Instant Match Found! Partner ID: ${info.partnerPlayerId} | You Give: ${info.youGive} | You Get: ${info.youGet}`);
-                    alert(`🎉 Instant Match Found!\n\nPartner Player ID: ${info.partnerPlayerId}\nYou Give: ${info.youGive}\nYou Get: ${info.youGet}`);
+                    alert(`🎉 匹配成功！\n\n对方 Player ID: ${info.partnerPlayerId}\n你将付出: ${info.youGive}\n你将获得: ${info.youGet}`);
                 } else {
                     addNotification(`✅ Trade request saved! Order ID: ${data.tradeId}`);
-                    alert(`✅ Trade request saved to database successfully!\nTrade Order ID: ${data.tradeId}`);
+                    alert(`✅ 挂单已成功提交至数据库！\n单号: ${data.tradeId}`);
                 }
 
                 postSubmitReset();
 
             } catch (err) {
-                alert(`Submit failed: ${err.message}`);
+                alert(`提交失败: ${err.message}`);
             }
         }
 
