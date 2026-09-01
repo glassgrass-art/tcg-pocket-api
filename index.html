@@ -317,7 +317,7 @@
                 loading: 'カードデータベースを読み込み中...',
                 step3Title: '16桁のプレイヤーIDを入力',
                 step3Desc: 'トレード申請をデータベースに送信するために、16桁のプレイヤーIDを入力してください。',
-                submitBtn: '数据库に送信',
+                submitBtn: 'データベースに送信',
                 modalTitle: 'マッチ通知＆履歴照会',
                 queryBtn: '履歴を検索',
                 modalWelcome: 'マッチングが成功するとここに通知が表示されます。上部でプレイヤーIDを入力して過去のトレードを検索できます。'
@@ -700,105 +700,102 @@
         }
 
         // 玩家主动查询自己的交易挂单
-       // 替换前端脚本中的 queryMyTrades 函数
-async function queryMyTrades() {
-    const input = document.getElementById('queryPlayerIdInput').value;
-    const cleanId = input.replace(/\D/g, '');
+        async function queryMyTrades() {
+            const input = document.getElementById('queryPlayerIdInput').value;
+            const cleanId = input.replace(/\D/g, '');
 
-    if (cleanId.length !== 16) {
-        alert('Please enter a valid 16-digit Player ID.');
-        return;
-    }
+            if (cleanId.length !== 16) {
+                alert('Please enter a valid 16-digit Player ID.');
+                return;
+            }
 
-    const history = document.getElementById('notificationHistory');
-    history.innerHTML = '<div class="text-center py-6 text-slate-400">Searching database...</div>';
+            const history = document.getElementById('notificationHistory');
+            history.innerHTML = '<div class="text-center py-6 text-slate-400">Searching database...</div>';
 
-    try {
-        const res = await fetch(`/api/check-my-trades?playerId=${cleanId}`);
-        const json = await res.json();
+            try {
+                const res = await fetch(`/api/check-my-trades?playerId=${cleanId}`);
+                const json = await res.json();
 
-        if (!json.success) throw new Error(json.error || 'Failed to search');
+                if (!json.success) throw new Error(json.error || 'Failed to search');
 
-        const trades = json.data || [];
-        if (trades.length === 0) {
-            history.innerHTML = `<div class="text-center py-6 text-slate-500">No trade records found for Player ID: ${cleanId}</div>`;
-            return;
+                const trades = json.data || [];
+                if (trades.length === 0) {
+                    history.innerHTML = `<div class="text-center py-6 text-slate-500">No trade records found for Player ID: ${cleanId}</div>`;
+                    return;
+                }
+
+                history.innerHTML = '';
+                trades.forEach(trade => {
+                    const item = document.createElement('div');
+                    const isMatched = trade.status === 'matched';
+
+                    const rawPartnerId = trade.displayPartnerId || trade.partner_player_id || '';
+                    const formattedPartnerId = rawPartnerId.length === 16 
+                        ? rawPartnerId.match(/.{1,4}/g).join('-') 
+                        : rawPartnerId;
+
+                    const giveImgUrl = trade.giveImg || trade.give_img || 'https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp';
+                    const getImgUrl = trade.getImg || trade.get_img || 'https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp';
+
+                    item.className = `p-4 rounded-xl border transition-all ${
+                        isMatched 
+                        ? 'bg-slate-900/90 border-emerald-500/50 shadow-lg shadow-emerald-950/30' 
+                        : 'bg-slate-900/60 border-slate-700'
+                    }`;
+
+                    item.innerHTML = `
+                        <div class="flex justify-between items-center font-mono text-[10px] pb-2 mb-3 border-b border-slate-700/60">
+                            <span class="flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full ${isMatched ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}"></span>
+                                <strong class="${isMatched ? 'text-emerald-400' : 'text-amber-400'} font-bold">
+                                    ${isMatched ? 'MATCHED' : 'PENDING'}
+                                </strong>
+                            </span>
+                            <span class="text-slate-400">${new Date(trade.created_at || Date.now()).toLocaleDateString()}</span>
+                        </div>
+
+                        ${isMatched ? `
+                            <div class="bg-slate-800/90 border border-slate-700 p-2.5 rounded-lg flex justify-between items-center mb-3">
+                                <div class="text-xs">
+                                    <span class="text-slate-400 block text-[10px]">Partner Player ID:</span>
+                                    <span class="font-mono font-bold text-amber-400 text-sm tracking-wide">${formattedPartnerId}</span>
+                                </div>
+                                <button onclick="navigator.clipboard.writeText('${rawPartnerId}'); alert('Player ID copied!');" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] px-2.5 py-1 rounded font-bold transition-colors">
+                                    Copy ID
+                                </button>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3 bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+                                <div class="flex flex-col items-center text-center">
+                                    <span class="text-[10px] font-bold text-rose-400 mb-1">📤 You Send</span>
+                                    <div class="w-16 h-22 bg-slate-900 rounded-lg overflow-hidden border border-rose-500/30 p-1 flex items-center justify-center">
+                                        <img src="${giveImgUrl}" onerror="this.src='https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp'" class="max-h-full max-w-full object-contain">
+                                    </div>
+                                    <span class="text-[10px] font-mono text-slate-300 mt-1">${trade.youGiveCard || trade.you_give || '-'}</span>
+                                </div>
+
+                                <div class="flex flex-col items-center text-center">
+                                    <span class="text-[10px] font-bold text-emerald-400 mb-1">📥 You Get</span>
+                                    <div class="w-16 h-22 bg-slate-900 rounded-lg overflow-hidden border border-emerald-500/30 p-1 flex items-center justify-center">
+                                        <img src="${getImgUrl}" onerror="this.src='https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp'" class="max-h-full max-w-full object-contain">
+                                    </div>
+                                    <span class="text-[10px] font-mono text-slate-300 mt-1">${trade.youGetCard || trade.you_get || '-'}</span>
+                                </div>
+                            </div>
+                        ` : `
+                            <div class="text-xs text-slate-400 flex justify-between items-center">
+                                <span>Rarity Tier: <strong class="text-amber-400 font-mono">${trade.rarity}</strong></span>
+                                <span class="text-[11px] text-slate-500">Waiting for partner...</span>
+                            </div>
+                        `}
+                    `;
+                    history.appendChild(item);
+                });
+
+            } catch (err) {
+                history.innerHTML = `<div class="text-center py-6 text-rose-400">Error: ${err.message}</div>`;
+            }
         }
-
-        history.innerHTML = '';
-        trades.forEach(trade => {
-            const item = document.createElement('div');
-            const isMatched = trade.status === 'matched';
-
-            // 格式化 16 位 Player ID 显示 (xxxx-xxxx-xxxx-xxxx)
-            const rawPartnerId = trade.displayPartnerId || trade.partner_player_id || '';
-            const formattedPartnerId = rawPartnerId.length === 16 
-                ? rawPartnerId.match(/.{1,4}/g).join('-') 
-                : rawPartnerId;
-
-            item.className = `p-4 rounded-xl border transition-all ${
-                isMatched 
-                ? 'bg-slate-900/90 border-emerald-500/50 shadow-lg shadow-emerald-950/30' 
-                : 'bg-slate-900/60 border-slate-700'
-            }`;
-
-            item.innerHTML = `
-                <div class="flex justify-between items-center font-mono text-[10px] pb-2 mb-3 border-b border-slate-700/60">
-                    <span class="flex items-center gap-1.5">
-                        <span class="w-2 h-2 rounded-full ${isMatched ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}"></span>
-                        <strong class="${isMatched ? 'text-emerald-400' : 'text-amber-400'} font-bold">
-                            ${isMatched ? 'MATCHED' : 'PENDING'}
-                        </strong>
-                    </span>
-                    <span class="text-slate-400">${new Date(trade.created_at).toLocaleDateString()}</span>
-                </div>
-
-                ${isMatched ? `
-                    <!-- 对方 Player ID 复制区 -->
-                    <div class="bg-slate-800/90 border border-slate-700 p-2.5 rounded-lg flex justify-between items-center mb-3">
-                        <div class="text-xs">
-                            <span class="text-slate-400 block text-[10px]">Partner Player ID:</span>
-                            <span class="font-mono font-bold text-amber-400 text-sm tracking-wide">${formattedPartnerId}</span>
-                        </div>
-                        <button onclick="navigator.clipboard.writeText('${rawPartnerId}'); alert('Player ID copied!');" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] px-2.5 py-1 rounded font-bold transition-colors">
-                            Copy ID
-                        </button>
-                    </div>
-
-                    <!-- 双向卡牌图片展示区 -->
-                    <div class="grid grid-cols-2 gap-3 bg-slate-950/60 p-3 rounded-xl border border-slate-800">
-                        <!-- Give Card -->
-                        <div class="flex flex-col items-center text-center">
-                            <span class="text-[10px] font-bold text-rose-400 mb-1">📤 You Send</span>
-                            <div class="w-16 h-22 bg-slate-900 rounded-lg overflow-hidden border border-rose-500/30 p-1 flex items-center justify-center">
-                                <img src="${trade.giveImg}" onerror="this.src='https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp'" class="max-h-full max-w-full object-contain">
-                            </div>
-                            <span class="text-[10px] font-mono text-slate-300 mt-1">${trade.youGiveCard || '-'}</span>
-                        </div>
-
-                        <!-- Get Card -->
-                        <div class="flex flex-col items-center text-center">
-                            <span class="text-[10px] font-bold text-emerald-400 mb-1">📥 You Get</span>
-                            <div class="w-16 h-22 bg-slate-900 rounded-lg overflow-hidden border border-emerald-500/30 p-1 flex items-center justify-center">
-                                <img src="${trade.getImg}" onerror="this.src='https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp'" class="max-h-full max-w-full object-contain">
-                            </div>
-                            <span class="text-[10px] font-mono text-slate-300 mt-1">${trade.youGetCard || '-'}</span>
-                        </div>
-                    </div>
-                ` : `
-                    <div class="text-xs text-slate-400 flex justify-between items-center">
-                        <span>Rarity Tier: <strong class="text-amber-400 font-mono">${trade.rarity}</strong></span>
-                        <span class="text-[11px] text-slate-500">Waiting for partner...</span>
-                    </div>
-                `}
-            `;
-            history.appendChild(item);
-        });
-
-    } catch (err) {
-        history.innerHTML = `<div class="text-center py-6 text-rose-400">Error: ${err.message}</div>`;
-    }
-}
 
         function openNotificationCenter() {
             document.getElementById('notificationModal').classList.remove('hidden');
