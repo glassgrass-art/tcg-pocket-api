@@ -13,11 +13,20 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { player_id, rarity, have_card_id, want_card_id } = req.body || {};
+    const body = req.body || {};
 
-    // 2. 校验前端入参
+    // 兼容前端不同的命名方式（下划线和驼峰）
+    const player_id = body.player_id || body.playerId;
+    const rarity = body.rarity;
+    const have_card_id = body.have_card_id || body.haveCardId || body.have_card;
+    const want_card_id = body.want_card_id || body.wantCardId || body.want_card;
+
+    // 2. 校验参数
     if (!player_id || !rarity || !have_card_id || !want_card_id) {
-      return res.status(400).json({ error: 'Missing required trade parameters.' });
+      return res.status(400).json({
+        error: 'Missing required trade parameters.',
+        received: { player_id, rarity, have_card_id, want_card_id }
+      });
     }
 
     const cleanPlayerId = String(player_id).trim();
@@ -30,7 +39,7 @@ export default async function handler(req, res) {
 
     const cleanBaseUrl = supabaseUrl.replace(/\/$/, '');
 
-    // 3. 查询 Supabase 数据库中是否有反向匹配的挂单 (status = open)
+    // 3. 查询 Supabase 中是否存在反向匹配订单 (status = open)
     const matchQueryUrl = `${cleanBaseUrl}/rest/v1/trades?rarity=eq.${encodeURIComponent(rarity)}&have_card_id=eq.${encodeURIComponent(want_card_id)}&want_card_id=eq.${encodeURIComponent(have_card_id)}&status=eq.open&limit=1`;
 
     const matchRes = await fetch(matchQueryUrl, {
@@ -49,14 +58,13 @@ export default async function handler(req, res) {
 
     const matchingTrades = await matchRes.json();
 
-    // 4. 判断是否找到撮合对象
+    // 4. 实时匹配分支
     if (matchingTrades && matchingTrades.length > 0) {
-      // 当在数据库找到匹配的目标 trade 时：
       const partnerTrade = matchingTrades[0];
       const matchedHaveCard = partnerTrade.have_card_id;
       const matchedWantCard = partnerTrade.want_card_id;
 
-      // 4a. 更新原有的挂单记录（Partner 的订单）
+      // 更新对方订单状态为 matched
       const patchRes = await fetch(`${cleanBaseUrl}/rest/v1/trades?id=eq.${partnerTrade.id}`, {
         method: 'PATCH',
         headers: {
@@ -67,7 +75,7 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify({
           status: 'matched',
-          partner_player_id: cleanPlayerId, // 写入当前用户的 ID
+          partner_player_id: cleanPlayerId,
           matched_card_have: matchedHaveCard,
           matched_card_want: matchedWantCard
         })
@@ -78,7 +86,7 @@ export default async function handler(req, res) {
         throw new Error(`Failed to patch partner trade: ${patchErr}`);
       }
 
-      // 4b. 插入当前用户的挂单记录（状态直接设为 matched）
+      // 创建当前用户已匹配的订单
       const newTradeRes = await fetch(`${cleanBaseUrl}/rest/v1/trades`, {
         method: 'POST',
         headers: {
@@ -93,7 +101,7 @@ export default async function handler(req, res) {
           have_card_id,
           want_card_id,
           status: 'matched',
-          partner_player_id: partnerTrade.player_id, // 写入对方的 ID
+          partner_player_id: partnerTrade.player_id,
           matched_card_have: want_card_id,
           matched_card_want: have_card_id
         })
@@ -114,7 +122,7 @@ export default async function handler(req, res) {
       });
 
     } else {
-      // 5. 若没有找到匹配订单，正常新建一个状态为 'open' 的挂单
+      // 5. 无匹配时直接新建 open 状态订单
       const createRes = await fetch(`${cleanBaseUrl}/rest/v1/trades`, {
         method: 'POST',
         headers: {
