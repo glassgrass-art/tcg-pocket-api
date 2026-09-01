@@ -641,7 +641,6 @@
                 return;
             }
             try {
-                // 修正为 API 目录中实际的文件路径 check-my-trades
                 const res = await fetch(`/api/check-my-trades?player_id=${playerId}&playerId=${playerId}`);
                 
                 const contentType = res.headers.get("content-type");
@@ -654,20 +653,30 @@
 
                 const history = document.getElementById('notificationHistory');
                 history.innerHTML = '';
-                if (!data.trades || data.trades.length === 0) {
+                
+                const trades = data.trades || data.data || [];
+
+                if (trades.length === 0) {
                     history.innerHTML = `<div class="text-xs text-slate-400 text-center py-6">No trade records found for this Player ID.</div>`;
                     return;
                 }
-                data.trades.forEach(t => {
+
+                trades.forEach(t => {
                     const item = document.createElement('div');
-                    item.className = "bg-slate-900 p-4 rounded-2xl border border-slate-700/80 text-xs text-slate-200 space-y-1.5 shadow";
+                    item.className = "bg-slate-900 p-4 rounded-2xl border border-slate-700/80 text-xs text-slate-200 space-y-1.5 shadow mb-3";
+                    
+                    const partnerId = t.partner_player_id || t.partnerPlayerId || '';
+                    const tradeStatus = t.status || 'pending';
+                    const haveCardsList = Array.isArray(t.have_cards) ? t.have_cards.join(', ') : (t.have_cards || '');
+
                     item.innerHTML = `
                         <div class="flex justify-between font-mono text-[10px] text-slate-400">
                             <span>Order ID: ${t.id}</span>
-                            <span class="${t.status === 'matched' ? 'text-emerald-400 font-bold' : 'text-amber-400'}">${(t.status || '').toUpperCase()}</span>
+                            <span class="${tradeStatus === 'matched' ? 'text-emerald-400 font-bold' : 'text-amber-400'}">${tradeStatus.toUpperCase()}</span>
                         </div>
                         <p><strong>Rarity:</strong> ${t.rarity}</p>
-                        ${t.partner_player_id ? `<p class="text-emerald-400 font-mono"><strong>Partner ID:</strong> ${t.partner_player_id}</p>` : ''}
+                        ${haveCardsList ? `<p><strong>Have Cards:</strong> ${haveCardsList}</p>` : ''}
+                        ${partnerId ? `<p class="text-emerald-400 font-mono"><strong>Partner ID:</strong> ${partnerId}</p>` : ''}
                     `;
                     history.appendChild(item);
                 });
