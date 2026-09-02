@@ -250,7 +250,7 @@
 
     <!-- 系统通知与历史记录中心弹窗 -->
     <div id="notificationModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-800 border border-slate-700/80 rounded-2xl max-w-xl w-full h-[540px] shadow-2xl flex flex-col overflow-hidden">
+        <div class="bg-slate-800 border border-slate-700/80 rounded-2xl max-w-2xl w-full h-[600px] shadow-2xl flex flex-col overflow-hidden">
             <div class="px-6 py-4 bg-slate-850 border-b border-slate-700/80 flex justify-between items-center">
                 <div class="flex items-center gap-2.5">
                     <span class="text-xl">🔔</span>
@@ -265,7 +265,7 @@
             </div>
 
             <div class="flex-1 p-6 overflow-y-auto">
-                <div id="notificationHistory" class="space-y-3">
+                <div id="notificationHistory" class="space-y-4">
                     <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-700/80 text-xs text-slate-300">
                         <div class="flex justify-between font-mono text-[10px] text-slate-500 mb-2">
                             <span>SYSTEM ALERT</span>
@@ -283,20 +283,7 @@
     <!-- 前端核心脚本 -->
     <script>
         const LOGO_BASE_URL = 'https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/sets';
-        const CARD_IMG_BASE = 'https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/cards-by-set';
-
-        // 获取卡片图片的真实 URL（兼容 A1-1 格式或纯数字格式）
-        function getCardImageUrl(cardId) {
-            let setId = 'A1';
-            let cardNum = cardId;
-            
-            if (cardId && cardId.includes('-')) {
-                const parts = cardId.split('-');
-                setId = parts[0];
-                cardNum = parts[1];
-            }
-            return `${CARD_IMG_BASE}/${setId}/${cardNum}.webp`;
-        }
+        const CARD_IMG_BASE = 'https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/cards';
 
         const langCodeToLogoSuffix = {
             'en': 'en_US', 'zh-TW': 'zh_TW', 'ja': 'ja_JP', 'ko': 'ko_KR',
@@ -322,6 +309,33 @@
             } else if (imgEl.parentElement) {
                 imgEl.parentElement.innerHTML = `<span class="text-xs font-bold font-mono text-slate-300 bg-slate-700/80 border border-slate-600 px-2.5 py-1 rounded-lg">${setId}</span>`;
             }
+        }
+
+        // 获取卡牌图片地址（多重兼容 fallback 逻辑）
+        function getCardImageUrl(card) {
+            if (!card) return 'https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp';
+            if (card.image) return card.image;
+            if (card.image_url) return card.image_url;
+            if (card.img_url) return card.img_url;
+            
+            // 如果后端只返回了 cardId/id/code，尝试拼装 raw GitHub 默认路径
+            const id = card.id || card.card_id || card.code;
+            if (id) {
+                return `${CARD_IMG_BASE}/${id}.webp`;
+            }
+            return 'https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp';
+        }
+
+        // 获取卡牌名称
+        function getCardName(card) {
+            if (!card) return 'Unknown Card';
+            return card.name || card.name_en || card.card_name || card.title || card.id || 'Unknown Card';
+        }
+
+        // 获取卡牌编号/ID
+        function getCardId(card) {
+            if (!card) return '';
+            return card.id || card.card_id || card.code || card.number || '';
         }
 
         const i18nDict = {
@@ -402,8 +416,8 @@
         function toggleAccordion(contentId, arrowId) {
             const content = document.getElementById(contentId);
             const arrow = document.getElementById(arrowId);
-            content.classList.toggle('hidden');
-            arrow.classList.toggle('rotate-180');
+            if (content) content.classList.toggle('hidden');
+            if (arrow) arrow.classList.toggle('rotate-180');
         }
 
         function toggleCardSelection(cardId, type) {
@@ -487,87 +501,100 @@
             container.innerHTML = '';
 
             try {
-                const res = await fetch(`/api/cards?rarity=${rarity}`);
+                const res = await fetch(`/api/cards?rarity=${rarity}&lang=${currentLang}`);
                 const json = await res.json();
+                if (!json.success) throw new Error(json.error || 'Failed to fetch cards');
                 
                 loading.style.display = 'none';
-                if (!json.success || !json.data || json.data.length === 0) {
-                    errorMsg.textContent = "No cards found for the selected rarity.";
-                    errorMsg.style.display = 'block';
+                updateTradeValidation();
+
+                const dataList = json.data || json.cards || json.expansions;
+
+                if (!dataList || dataList.length === 0) {
+                    container.innerHTML = `<div class="text-center py-16 text-slate-500 bg-slate-800/40 rounded-2xl border border-slate-700">No cards found for rarity ${rarity}</div>`;
                     return;
                 }
 
-                // 树状分组逻辑：按 Set 分组
-                const setsMap = {};
-                json.data.forEach(card => {
-                    const setId = card.setId || 'A1';
-                    if (!setsMap[setId]) {
-                        setsMap[setId] = {
-                            setId: setId,
-                            setName: card.setName || setId,
-                            cards: []
-                        };
+                // 判断数据是按卡包分组 (Expansion-based) 还是直接为数组
+                let groups = [];
+                if (Array.isArray(dataList)) {
+                    if (dataList[0] && (dataList[0].cards || dataList[0].expansion)) {
+                        groups = dataList;
+                    } else {
+                        // 如果后端返回的是平铺数组，自动按 set_id / expansion 分组
+                        const map = {};
+                        dataList.forEach(card => {
+                            const setId = card.set_id || card.expansion || card.set || 'A1';
+                            if (!map[setId]) map[setId] = { setId: setId, name: `Expansion ${setId}`, cards: [] };
+                            map[setId].cards.push(card);
+                        });
+                        groups = Object.values(map);
                     }
-                    setsMap[setId].cards.push(card);
-                });
+                }
 
-                let index = 0;
-                for (const setId in setsMap) {
-                    const group = setsMap[setId];
-                    const contentId = `set-content-${setId}`;
-                    const arrowId = `set-arrow-${setId}`;
+                groups.forEach((group, groupIdx) => {
+                    const setId = group.setId || group.set_id || group.id || group.expansion || `SET-${groupIdx}`;
+                    const groupTitle = group.name || group.title || `Expansion ${setId}`;
+                    const cards = group.cards || group.items || [];
+                    const contentId = `group-content-${groupIdx}`;
+                    const arrowId = `group-arrow-${groupIdx}`;
 
-                    const accordionHtml = `
-                        <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl overflow-hidden shadow-lg">
+                    let cardsHtml = '';
+                    cards.forEach(card => {
+                        const cardId = getCardId(card);
+                        const cardName = getCardName(card);
+                        const imgUrl = getCardImageUrl(card);
+                        const isHave = !!userTradeData.have[cardId];
+                        const isWant = !!userTradeData.want[cardId];
+                        const cardBoxClass = getCardBoxClassName(isHave, isWant);
+
+                        cardsHtml += `
+                            <div id="card-box-${cardId}" class="${cardBoxClass}">
+                                <div class="w-full aspect-[3/4] rounded-xl overflow-hidden bg-slate-950/60 relative flex items-center justify-center border border-slate-800/80">
+                                    <img src="${imgUrl}" alt="${cardName}" class="w-full h-full object-contain hover:scale-105 transition-transform duration-300" loading="lazy" onerror="this.src='https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp'">
+                                </div>
+                                <div class="text-center w-full px-1">
+                                    <h4 class="text-xs font-bold text-slate-200 truncate" title="${cardName}">${cardName}</h4>
+                                    <p class="text-[10px] font-mono text-slate-400 mt-0.5">${cardId}</p>
+                                </div>
+                                <div class="grid grid-cols-2 gap-1.5 w-full mt-auto pt-1">
+                                    <button onclick="toggleCardSelection('${cardId}', 'have')" class="py-1 px-2 text-[10px] font-bold rounded-lg transition-all border ${isHave ? 'bg-emerald-600 border-emerald-500 text-white shadow-sm' : 'bg-slate-800 border-slate-700 text-slate-300 hover:border-emerald-500/50 hover:text-emerald-400'}">
+                                        HAVE
+                                    </button>
+                                    <button onclick="toggleCardSelection('${cardId}', 'want')" class="py-1 px-2 text-[10px] font-bold rounded-lg transition-all border ${isWant ? 'bg-rose-600 border-rose-500 text-white shadow-sm' : 'bg-slate-800 border-slate-700 text-slate-300 hover:border-rose-500/50 hover:text-rose-400'}">
+                                        WANT
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    const groupHtml = `
+                        <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl overflow-hidden shadow-lg">
                             <button onclick="toggleAccordion('${contentId}', '${arrowId}')" class="w-full px-5 py-4 flex items-center justify-between bg-slate-800 hover:bg-slate-750 transition-colors">
                                 <div class="flex items-center gap-3">
-                                    <div class="h-8 flex items-center justify-center">
-                                        <img src="${getPackLogoUrl(setId, currentLang)}" onerror="handleLogoError(this, '${setId}')" class="h-6 object-contain max-w-[120px]" alt="${setId}">
+                                    <div class="h-7 min-w-16 flex items-center justify-center">
+                                        <img src="${getPackLogoUrl(setId, currentLang)}" onerror="handleLogoError(this, '${setId}')" class="h-6 object-contain">
                                     </div>
-                                    <span class="font-bold text-sm text-slate-200">${group.setName}</span>
-                                    <span class="text-xs text-slate-400 bg-slate-900/80 px-2 py-0.5 rounded-full font-mono">${group.cards.length} cards</span>
+                                    <span class="text-sm font-bold text-slate-100">${groupTitle}</span>
+                                    <span class="text-[10px] font-mono bg-slate-900/80 text-slate-400 border border-slate-700 px-2 py-0.5 rounded-full">${cards.length} cards</span>
                                 </div>
-                                <span id="${arrowId}" class="transform transition-transform duration-200 text-slate-400">▼</span>
+                                <span id="${arrowId}" class="text-slate-400 transition-transform duration-300 text-sm">▼</span>
                             </button>
-                            
-                            <div id="${contentId}" class="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 border-t border-slate-700/50 bg-slate-900/40">
-                                ${group.cards.map(card => {
-                                    const isHave = !!userTradeData.have[card.id];
-                                    const isWant = !!userTradeData.want[card.id];
-                                    const boxClass = getCardBoxClassName(isHave, isWant);
-                                    
-                                    return `
-                                        <div id="card-box-${card.id}" class="${boxClass}">
-                                            <div class="w-full aspect-[2.5/3.5] bg-slate-950 rounded-xl overflow-hidden relative shadow">
-                                                <img src="${getCardImageUrl(card.id)}" alt="${card.name}" loading="lazy" class="w-full h-full object-cover">
-                                            </div>
-                                            <div class="w-full text-center">
-                                                <div class="text-xs font-bold truncate text-slate-200" title="${card.name}">${card.name}</div>
-                                                <div class="text-[10px] text-slate-400 font-mono">${card.id}</div>
-                                            </div>
-                                            <div class="grid grid-cols-2 gap-1.5 w-full mt-1">
-                                                <button onclick="toggleCardSelection('${card.id}', 'have')" class="py-1 rounded-lg text-[10px] font-bold transition-all border border-emerald-500/50 ${isHave ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-emerald-400 hover:bg-emerald-950'}">
-                                                    HAVE
-                                                </button>
-                                                <button onclick="toggleCardSelection('${card.id}', 'want')" class="py-1 rounded-lg text-[10px] font-bold transition-all border border-rose-500/50 ${isWant ? 'bg-rose-600 text-white' : 'bg-slate-800 text-rose-400 hover:bg-rose-950'}">
-                                                    WANT
-                                                </button>
-                                            </div>
-                                        </div>
-                                    `;
-                                }).join('')}
+                            <div id="${contentId}" class="p-4 border-t border-slate-700/60 bg-slate-900/40">
+                                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3.5">
+                                    ${cardsHtml}
+                                </div>
                             </div>
                         </div>
                     `;
-                    container.insertAdjacentHTML('beforeend', accordionHtml);
-                    index++;
-                }
+                    container.insertAdjacentHTML('beforeend', groupHtml);
+                });
 
-                updateTradeValidation();
             } catch (err) {
                 loading.style.display = 'none';
-                errorMsg.textContent = "Failed to load database cards. Please try again.";
                 errorMsg.style.display = 'block';
+                errorMsg.textContent = `Error: ${err.message}`;
             }
         }
 
@@ -575,36 +602,37 @@
             const playerId = document.getElementById('playerIdInput').value.replace(/\D/g, '');
             if (playerId.length !== 16) return;
 
+            const haveIds = Object.keys(userTradeData.have);
+            const wantIds = Object.keys(userTradeData.want);
+
             const submitBtn = document.getElementById('submitTradeBtn');
             submitBtn.disabled = true;
-            submitBtn.innerText = 'Submitting...';
+            submitBtn.textContent = 'Submitting...';
 
             try {
-                const res = await fetch('/api/trade', {
+                const res = await fetch('/api/trades/submit', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         playerId: playerId,
                         rarity: currentRarity,
-                        have: Object.keys(userTradeData.have),
-                        want: Object.keys(userTradeData.want)
+                        have: haveIds,
+                        want: wantIds
                     })
                 });
-
                 const json = await res.json();
                 if (json.success) {
-                    alert('Trade listing submitted successfully!');
+                    alert(currentLang === 'zh-TW' ? '提交成功！系统正在为你匹配...' : 'Submitted successfully! System matching in progress...');
                     openNotificationCenter();
                     document.getElementById('queryPlayerIdInput').value = playerId;
                     queryMyTrades();
                 } else {
-                    alert('Submission failed: ' + (json.message || 'Unknown error'));
+                    alert(json.error || 'Submission failed');
                 }
             } catch (e) {
-                alert('Network error, submit failed.');
+                alert('Network error: ' + e.message);
             } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '🚀 <span data-i18n="submitBtn">Submit to Database</span>';
+                updateTradeValidation();
             }
         }
 
@@ -617,35 +645,91 @@
         }
 
         async function queryMyTrades() {
-            const playerId = document.getElementById('queryPlayerIdInput').value.replace(/\D/g, '');
-            if (!playerId) return;
-
+            const pid = document.getElementById('queryPlayerIdInput').value.replace(/\D/g, '');
             const historyContainer = document.getElementById('notificationHistory');
-            historyContainer.innerHTML = '<div class="text-xs text-slate-400 text-center py-4">Searching records...</div>';
+
+            if (pid.length !== 16) {
+                alert('Please enter a valid 16-digit Player ID');
+                return;
+            }
+
+            historyContainer.innerHTML = '<div class="text-center py-8 text-xs text-slate-400">Searching matching database...</div>';
 
             try {
-                const res = await fetch(`/api/my-trades?playerId=${playerId}`);
+                const res = await fetch(`/api/trades/user?playerId=${pid}`);
                 const json = await res.json();
-                
-                if (json.success && json.data && json.data.length > 0) {
-                    historyContainer.innerHTML = json.data.map(item => `
-                        <div class="bg-slate-900/90 p-3.5 rounded-xl border border-slate-700/80 text-xs text-slate-300 space-y-2">
-                            <div class="flex justify-between font-mono text-[10px] text-slate-400 border-b border-slate-800 pb-1.5">
-                                <span>ID: ${item.id || 'N/A'}</span>
-                                <span class="text-amber-400 font-bold">${item.rarity}</span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-2 text-[11px]">
-                                <div><span class="text-emerald-400 font-bold">HAVE:</span> ${item.have.join(', ')}</div>
-                                <div><span class="text-rose-400 font-bold">WANT:</span> ${item.want.join(', ')}</div>
-                            </div>
-                            ${item.match ? `<div class="bg-indigo-950/60 border border-indigo-500/40 p-2 rounded-lg text-indigo-300 text-[11px]">🎯 Matched with Player: <strong class="font-mono text-amber-300">${item.match.playerId}</strong></div>` : '<div class="text-[10px] text-slate-500 font-mono">Status: Searching for match...</div>'}
+
+                if (!json.success || !json.data || json.data.length === 0) {
+                    historyContainer.innerHTML = `
+                        <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-700/80 text-xs text-slate-400 text-center">
+                            No active trade requests found for Player ID: <span class="font-mono text-amber-400">${pid}</span>
                         </div>
-                    `).join('');
-                } else {
-                    historyContainer.innerHTML = '<div class="text-xs text-slate-400 text-center py-4">No trade records found for this Player ID.</div>';
+                    `;
+                    return;
                 }
+
+                let html = '';
+                json.data.forEach(item => {
+                    // 支持带卡牌图片预览的站内信匹配渲染
+                    const renderCardList = (cardArr, label, colorClass) => {
+                        if (!cardArr || cardArr.length === 0) return '';
+                        let cardsContent = cardArr.map(c => {
+                            const cId = typeof c === 'object' ? getCardId(c) : c;
+                            const cName = typeof c === 'object' ? getCardName(c) : c;
+                            const img = typeof c === 'object' ? getCardImageUrl(c) : `${CARD_IMG_BASE}/${cId}.webp`;
+                            return `
+                                <div class="flex items-center gap-2 bg-slate-950/80 p-1.5 rounded-xl border border-slate-800">
+                                    <img src="${img}" class="w-8 h-10 object-contain rounded bg-slate-900" onerror="this.src='https://raw.githubusercontent.com/glassgrass-art/tcg-pocket-api/main/dist/images/rarities/diamond.webp'">
+                                    <div class="overflow-hidden">
+                                        <div class="text-[11px] font-bold text-slate-200 truncate max-w-[100px]" title="${cName}">${cName}</div>
+                                        <div class="text-[9px] font-mono text-slate-400">${cId}</div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+
+                        return `
+                            <div class="space-y-1">
+                                <span class="text-[10px] font-bold uppercase ${colorClass}">${label}</span>
+                                <div class="grid grid-cols-2 gap-1.5">${cardsContent}</div>
+                            </div>
+                        `;
+                    };
+
+                    const haveSection = renderCardList(item.have, 'Offering (Have)', 'text-emerald-400');
+                    const wantSection = renderCardList(item.want, 'Seeking (Want)', 'text-rose-400');
+
+                    html += `
+                        <div class="bg-slate-900/90 p-4 rounded-2xl border ${item.matched ? 'border-emerald-500/60' : 'border-slate-700'} text-xs space-y-3 shadow-lg">
+                            <div class="flex justify-between items-center font-mono text-[10px]">
+                                <span class="px-2 py-0.5 rounded-full ${item.matched ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/40' : 'bg-amber-950 text-amber-300 border border-amber-500/40'} font-bold">
+                                    ${item.matched ? 'MATCH FOUND 🎉' : 'SEARCHING MATCH...'}
+                                </span>
+                                <span class="text-slate-500">${new Date(item.createdAt || Date.now()).toLocaleDateString()}</span>
+                            </div>
+
+                            ${item.matchedUser ? `
+                                <div class="bg-indigo-950/40 border border-indigo-500/40 p-3 rounded-xl flex items-center justify-between">
+                                    <div>
+                                        <div class="text-[10px] text-indigo-300 uppercase font-bold">Matched Partner Player ID</div>
+                                        <div class="text-sm font-mono font-bold text-amber-400 tracking-wider mt-0.5">${item.matchedUser}</div>
+                                    </div>
+                                    <button onclick="navigator.clipboard.writeText('${item.matchedUser}'); alert('Partner ID Copied!');" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] px-2.5 py-1.5 rounded-lg font-bold">Copy ID</button>
+                                </div>
+                            ` : ''}
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                                ${haveSection}
+                                ${wantSection}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                historyContainer.innerHTML = html;
+
             } catch (e) {
-                historyContainer.innerHTML = '<div class="text-xs text-rose-400 text-center py-4">Failed to fetch trade records.</div>';
+                historyContainer.innerHTML = `<div class="text-rose-400 text-xs text-center py-4">Failed to fetch trade history: ${e.message}</div>`;
             }
         }
     </script>
